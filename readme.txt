@@ -1,3 +1,7 @@
+First things first I think you'll need python and a python IDE, so you can make a virtual environment for the py files (e.g. VScode or PyCharm)
+
+----------------------------------------------------------------------------------------
+
    course_editor.py:
 left click to select/place tiles
 right click is an eyedropper tool for tiles
