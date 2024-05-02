@@ -3,6 +3,7 @@ First things first I think you'll need python and a python IDE, so you can make 
 ----------------------------------------------------------------------------------------
 
    course_editor.py:
+**COURSE EDITOR INFO**
 left click to select/place tiles
 right click is an eyedropper tool for tiles
 up/down or scroll to move
@@ -20,6 +21,23 @@ when loading, try to refrain from mixing difficulties, unless you're ok with man
 there is also a button to show collisions and one for a grid type thing
 
 if you want to make new course graphics, you can copy an existing folder pair and edit those pngs (so for instance if you wanted to make ski, you could create a ski and ski_effects folder, and then replace some other sport name on line 49 of the code with the new name. but if you don't care about seeing new graphics in the tile editor, no need to make any new files)
+
+
+**TILE EDITOR INFO**
+left click on a palette/colour (top left) to choose it, and right click on a colour to be prompted to change it (in the console, using RGB values from 0 to 255)
+  if in subtile editor mode, it'll be your paintbrush colour (in the context of "colour 0, colour 1, colour 2, colour 3")
+  if in bigtile editor mode, it'll replace the selected bigtile quadrant's palette
+  in both modes, it changes the display colour of subtiles in the top right (just a graphical thing; subtiles aren't connected to a specific palette)
+left click on a subtile in the top right to select it
+  if in subtile editor mode, it'll put it in the big screen and you can then draw on it
+  if in bigtile editor mode, it'll replace the selected bigtile quadrant's subtile
+left click on a collision colour in the bottom left to select it (only works in bigtile editor mode, where it replaces the bigtile quadrant's collision
+left click on one of the four grey/yellow buttons (only in bigtile editor mode) to (from left to right):
+- change the priority (on means the last 3 colours in the palette are drawn over bears)
+- flip the subtile vertically
+- flip the subtile horizontally
+- change the bank (from first 255 subtiles to the next 255 subtiles)
+save/load buttons also require responses in the console (levels should be stored in levels/modified_levels. type the whole file name in (i don't remember if that's the same as it was done in the other mode, but if it's different oops sorry i'll fix it one day)
 
 ----------------------------------------------------------------------------------------
 
