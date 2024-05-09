@@ -22,6 +22,10 @@ there is also a button to show collisions and one for a grid type thing
 
 if you want to make new course graphics, you can copy an existing folder pair and edit those pngs (so for instance if you wanted to make ski, you could create a ski and ski_effects folder, and then replace some other sport name on line 49 of the code with the new name. but if you don't care about seeing new graphics in the tile editor, no need to make any new files)
 
+loading from a game/a full game loads course data from a bears game, instead of from a csv file.
+
+loading tiles allows you to change the bigtile graphics/collsiion graphics in some stage (and are loaded from folders in the tiles folder. the print button in the tile editor can make these folders.)
+
 
 **TILE EDITOR INFO**
 left click on a palette/colour (top left) to choose it, and right click on a colour to be prompted to change it (in the console, using RGB values from 0 to 255)
@@ -38,6 +42,7 @@ left click on one of the four grey/yellow buttons (only in bigtile editor mode) 
 - flip the subtile horizontally
 - change the bank (from first 255 subtiles to the next 255 subtiles)
 save/load buttons also require responses in the console (levels should be stored in levels/modified_levels. type the whole file name in (i don't remember if that's the same as it was done in the other mode, but if it's different oops sorry i'll fix it one day)
+the print button makes images of all bigtiles in the tiles folder
 
 ----------------------------------------------------------------------------------------
 
