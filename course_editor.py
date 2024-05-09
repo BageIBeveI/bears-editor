@@ -4,6 +4,9 @@ import pygame
 import button
 import csv
 import re
+import glob
+from PIL import Image
+import os
 
 #pygame initializer
 pygame.init()
@@ -37,6 +40,10 @@ SUBTILE_EDITOR_IMAGE = pygame.image.load(f'tile_editor_pictures/subtileEditorBut
 BIGTILE_EDITOR_IMAGE = pygame.image.load(f'tile_editor_pictures/bigtileEditorButton.png')
 TOGGLE_SUBTILES_IMAGE = pygame.image.load(f'tile_editor_pictures/toggleSubtilesButton.png')
 TOGGLE_COLLISIONS_IMAGE = pygame.image.load(f'tile_editor_pictures/toggleCollisionsButton.png')
+PRINT_IMAGE = pygame.image.load(f'tile_editor_pictures/printButton.png')
+LOAD_FROM_GAME_IMAGE = pygame.image.load(f'tile_editor_pictures/loadFromGameButton.png')
+LOAD_FULL_GAME_IMAGE = pygame.image.load(f'tile_editor_pictures/loadFullGameButton.png')
+LOAD_LEVEL_TILES_IMAGE = pygame.image.load(f'tile_editor_pictures/loadLevelTilesButton.png')
 
 #buttons for the tile map
 def gridButtonMaker():
@@ -54,8 +61,23 @@ def gridButtonMaker():
             currentColumn = 0
             currentRow += 1
 
+def checkerer():
+    temp = (scroll%32)-32
+    layer = 0
+    thetangle = pygame.Surface((32, 32))
+    thetangle.set_alpha(100)
+    thetangle.fill((0,0,0))
+    while temp < screenHeight:
+        for i in range(16):
+            if (i + layer)%2 == 0:
+                SCREEN.blit(thetangle, (i*32, temp))
+        layer += 1
+        temp += 32
 
-#variables
+
+
+#various mode 0 variables
+CONST_SPORTS = ["toboggan", "sled", "raft", "kayak", "bike", "dirtboard"]
 SPORTS = ["toboggan", "sled", "raft", "kayak", "bike", "dirtboard"]
 DIFFICULTIES = ["Beginner", "Intermediate", "Expert"]
 HORIZONTAL_LINE_VALUES = [0x21B, 0x2A1, 0x31E]
@@ -78,6 +100,46 @@ inventoryIndex = 0
 #effects = False   old
 effectsOn = False
 programMode = 0
+clock = pygame.time.Clock()
+checkerenate = False
+
+#various
+hexCodes = [[100,0,0]]*0x20
+bigtilePalettes = [0]*0x400
+subtileGraphics = ["00000000"]*0x1EA0
+bigtileSubtiles = [0]*0x400
+bigtileCollisions = [0]*0x400
+subtileSelected = 0
+colourSelected = 0
+paletteSelected = 0
+subtileMode = True
+colours = [[255, 219, 182], [102, 102, 102], [129, 212, 26], [180, 199, 220], [255, 166, 166], [107, 94, 155], [129, 172, 166], [129, 55, 9], [52, 101, 164], [255, 128, 0], [120, 3, 115], [21, 132, 102], [241, 13, 12], [34, 75, 18], [172, 178, 12]]
+collisionColourMapper = {0x00 : 0,
+           0x02 : 1,
+           0x03 : 2,
+           0x08 : 3,
+           0x0C : 4,
+           0x11 : 5,
+           0x21 : 6,
+           0x31 : 7,
+           0x32 : 8,
+           0x33 : 9,
+           0x42 : 10,
+           0x73 : 11,
+           0x82 : 12,
+           0xB3 : 13,
+           0xC0 : 14}
+collisionSelected = 0
+bigtileSelected = 0
+bigtileQuadrantSelected = 0
+subtileyPalleteyThingies = [False]*4 # priority, vt_flip, hz_flip, bank
+ox400IndexThingForHere = 0
+displayBigtileSubtiles = True
+displayBigtileCollision = True
+alpher = True
+scrollLeft = False
+scrollRight = False
+waiter = True
 
 #tilemap data storage (lists in lists, where list[sport][diff] = the correct data)
 for sport in range(6):
@@ -133,15 +195,11 @@ def sportTypeButtonMover(mode):
     sportTypeButtons.append(button.Button(704 - (80*mode), 90, KAYAK_IMAGE, 2))
     sportTypeButtons.append(button.Button(560 - (80*mode), 135, BIKE_IMAGE, 2))
     sportTypeButtons.append(button.Button(704 - (80*mode), 135, DIRTBOARD_IMAGE, 2))
+sportTypeButtonMover(0)
 
 sportDifficultyButtons.append(button.Button(550, 190, BEGINNER_IMAGE, 2))
 sportDifficultyButtons.append(button.Button(640, 190, INTERMEDIATE_IMAGE, 2))
 sportDifficultyButtons.append(button.Button(730, 190, EXPERT_IMAGE, 2))
-
-#for i in range(10):
-    #tileInvButtons.append(button.Button())
-
-
 
 GRID_BUTTON = button.Button(710, 10, GRID_IMAGE, 1)
 SAVE_BUTTON = button.Button(750, 10, SAVE_IMAGE, 1)
@@ -153,7 +211,10 @@ SUBTILE_EDITOR_BUTTON = button.Button(1000,550, SUBTILE_EDITOR_IMAGE, 1)
 BIGTILE_EDITOR_BUTTON = button.Button(1150,550, BIGTILE_EDITOR_IMAGE, 1)
 TOGGLE_SUBTILES_BUTTON = button.Button(300,500, TOGGLE_SUBTILES_IMAGE, 1)
 TOGGLE_COLLISIONS_BUTTON = button.Button(400,500, TOGGLE_COLLISIONS_IMAGE, 1)
-
+PRINT_BUTTON = button.Button(830, 10, PRINT_IMAGE, 1)
+LOAD_FROM_GAME_BUTTON = button.Button(830, 10, LOAD_FROM_GAME_IMAGE, 1)
+LOAD_FULL_GAME_BUTTON = button.Button(870, 10, LOAD_FULL_GAME_IMAGE, 1)
+LOAD_LEVEL_TILES_BUTTON = button.Button(910, 10, LOAD_LEVEL_TILES_IMAGE, 1)
 
 #clickable tile buttons
 def buttonMaker():
@@ -173,18 +234,24 @@ def buttonMaker():
 
     return clickableTileButtonLists
 
-
+#makes a list of the clickable bigtiles in the bottom right
 CLICKY_TILES = buttonMaker()
-
-#grid line drawing
-# def gridPlacer():
-#     for c in range(VERTICAL_LINE_COUNT + 1):
-#         pygame.draw.line(screen, (255, 255, 255), (c * gridTileWidth, 0 + scroll), (c * gridTileWidth, horizontalLineCount * gridTileWidth + scroll))
-#     for c in range(horizontalLineCount + 1):
-#         pygame.draw.line(screen, (255, 255, 255), (0, c * gridTileWidth + scroll), (512, c * gridTileWidth + scroll))
 
 #setting up tiles in inventory
 tileInvPictures = [0] * 10
+
+#load a new course
+def loadLevel(name, sportType, sportDifficulty):
+    file = open(f"levels/modified levels/{name}.gbc", "rb")
+    levelOffset = BEARS_LEVEL_DATA_OFFSET_RANGES[sportType][sportDifficulty]
+    length = HORIZONTAL_LINE_VALUES[sportDifficulty] * 0x10
+    if sportType < 2 and sportDifficulty == 0:
+        length -= 0x10
+    data = file.read()[levelOffset:levelOffset + length]
+    liszt = []
+    for byte in data:
+        liszt.append(byte)
+    allLevelTileCSVs[sportType][sportDifficulty] = liszt
 
 #loading in subtiles as images, for subtile mode
 def loadSubtileData(sport):
@@ -199,20 +266,19 @@ def loadSubtileData(sport):
     subtileGraphicsOffsets = [0x5976, 0x99D7, 0xD8EB, 0x119B4, 0x15AFB, 0x19C3B]
     subtileGraphicsLengths = [0x1EA0, 0x1DC0, 0x1FA0, 0x1FD0, 0x1F70, 0x1900]
     #subtileColoursOffsets = above two added, plus 0xA
-    #chexList = []
-    name = input("enter bears file name here (say E for empty subtiles) (. to abort): ")
+    name = input("enter bears file name here (.gbc file format assumed, so don't type it) (say E for empty subtiles) (. to abort): ")
     while name == "E":
         if input("are you sure? (E again if yes): ") == "E":
             hexCodes = [[0, 0, 0]] * 0x20
             bigtilePalettes = [0] * 0x400
             subtileGraphics = ["00000000"] * subtileGraphicsLengths[sport]
             return
-        name = input("enter bears file name here (say E for empty subtiles) (. to abort): ")
+        name = input("enter bears file name here (.gbc file format assumed, so don't type it) (say E for empty subtiles) (. to abort): ")
     if name != ".":
         try:
-            file = open(f"levels/modified levels/{name}", 'rb')
+            file = open(f"levels/modified levels/{name}.gbc", 'rb')
             byteLand = file.read()
-            check = input("Do you want to import this game's palette? (if no, don't enter anything):")
+            check = input(f"Do you want to import this game's {CONST_SPORTS[sportType]} palette? (if no, don't enter anything): ")
             if check != "":
                 extraOffsets = [[0x4A98, 0, 0, 0x4AA5],[0x8AB0, 0, 0, 0x8ABD],[0, 0, 0xCA3C, 0xCA45],[0, 0, 0x10A75, 0x10A7E],[0, 0, 0x14B62, 0x14B6B],[0, 0, 0x18B7B, 0x18B84]]
                 hexCodes = []
@@ -224,22 +290,13 @@ def loadSubtileData(sport):
                     else:
                         paletteData += byteLand[(extraOffsets[sport][i]):(extraOffsets[sport][i])+2]
                 paletteData += byteLand[paletteOffset+0x08:paletteOffset+0x40] #0x40 bytes in a 7 colour palette
-                #print(paletteOffset, paletteData[paletteOffset:paletteOffset+0x40])
                 for i in range(0, 0x40, 2):
-                    #print(hexCodes)
-                    #print(paletteData[i], paletteData[i+1])
                     hexCodes.append([int((paletteData[i] & 0x1F) << 3), int(((paletteData[i] >> 5) + ((paletteData[i+1] & 0x3) << 3)) << 3), int(((paletteData[i+1] & 0x7C) >> 2) << 3)]) #GGGRRRRR XBBBBBGG into hex (R, G, B). normal conversion to a val btwn 0 and 1f, then left shift three times cuz hex takes 0 to 255 (so we approx)
                     # possibly bad to do this in a global way but whatevs
-                    # hmmmmm the colour conversion doesn't work perfectly, maybe there's something im missing
-                    #chexList.append(hex(((paletteData[i] & 0x1F) << 3 << 16) + (((paletteData[i] >> 5) + ((paletteData[i+1] & 0x3) << 3)) << 3 << 8) + ((paletteData[i+1] & 0x7C) >> 2 << 3))) #ideas for getting the hex code , though ig we don't need
-                    #chexList.append(str(hex(paletteData[i] & 0x1F << 3))[2:] + str(hex(((paletteData[i] >> 5) + ((paletteData[i+1] & 0x3) << 3)) << 3))[2:] + str(hex((paletteData[i+1] & 0x7C) >> 2 << 3))[2:])
-                ###print(hexCodes)
-                ###print(paletteData)
-                #print(chexList)
+                    # hmmmmm the colour conversion doesn't work perfectly, maybe there's something im missing, but it works well enough
 
-            check = input("Do you want to import this game's subtile graphics? (if no, don't enter anything)")
+            check = input(f"Do you want to import this game's {CONST_SPORTS[sportType]} subtile graphics? (if no, don't enter anything): ")
             if check != "":
-                pass
                 subtileGraphics = []
                 subtileyOffset = subtileGraphicsOffsets[sportType]
                 lengthe = subtileGraphicsLengths[sportType]
@@ -247,15 +304,13 @@ def loadSubtileData(sport):
                 for i in range(0, lengthe, 2):
                     subtileGraphics.append(str(int(bin(subtileData[i])[2:]) + int(bin(subtileData[i+1])[2:]) * 2).zfill(8))
                     #either mult i by 2 or i+1 by 2 (with binary as integers)
-                ###print(subtileGraphics)
 
-            check = input("Do you want to import this game's bigtile subtile graphic configurations and collisions? (if no, don't enter anything)")
+            check = input(f"Do you want to import this game's {CONST_SPORTS[sportType]} bigtile subtile graphic configurations and collisions? (if no, don't enter anything): ")
             if check != "":
                 for i in range(0x400):
                     bigtileCollisions[i] = byteLand[bigtileCollisionOffsets[sport] + i]
                     bigtileSubtiles[i] = byteLand[bigtileCollisionOffsets[sport]+0x40A+i]
                     bigtilePalettes[i] = byteLand[bigtileCollisionOffsets[sport]+0x80A+i]
-                ###print(bigtilePalettes)
             file.close()
             print("Changes have been made. (unless you didn't do any of the three i guess)")
             return
@@ -271,48 +326,39 @@ def saveThineData(sport):
     global bigtileCollisions
     global bigtileSubtiles
     bigtileCollisionOffsets = [0x4D6C, 0x8DCD, 0xCCE1, 0x10DAA, 0x14EF1, 0x19031]
-    # bigtileGraphicsOffsets = above plys 0x40A
+    # bigtileGraphicsOffsets = above plus 0x40A
     # bigtilePaletteOffsets = above plus 0x80A
     subtileGraphicsOffsets = [0x5976, 0x99D7, 0xD8EB, 0x119B4, 0x15AFB, 0x19C3B]
     subtileGraphicsLengths = [0x1EA0, 0x1DC0, 0x1FA0, 0x1FD0, 0x1F70, 0x1900]
     # subtileColoursOffsets = above two added, plus 0xA
-    # chexList = []
-    name = input("enter bears file name here (. to abort): ")
+    name = input("enter bears file name here (.gbc file format assumed, so don't type it) (. to abort): ")
     if name != ".":
         try:
             file = open(f"levels/modified levels/{name}", 'r+b')
-            check = input("Do you want to save your palette to the file? (if no, don't enter anything):")
+            check = input("Do you want to save your palette to the file? (if no, don't enter anything): ")
             if check != "":
                 extraOffsets = [[0x4A98, 0, 0, 0x4AA5], [0x8AB0, 0, 0, 0x8ABD], [0, 0, 0xCA3C, 0xCA45],
                                 [0, 0, 0x10A75, 0x10A7E], [0, 0, 0x14B62, 0x14B6B], [0, 0, 0x18B7B, 0x18B84]]
                 paletteOffset = subtileGraphicsOffsets[sport] + subtileGraphicsLengths[sport] + 0xA
-                paletteData = b''
                 for i in range(4):
                     RGB = hexCodes[i]
-                    ###print(RGB, bin(RGB[0] >> 3)[2:].zfill(5), bin(RGB[1] >> 3)[2:].zfill(5), bin(RGB[2] >> 3)[2:].zfill(5))
                     G = bin(RGB[1] >> 3)[2:].zfill(5)
                     temp = G[2:].zfill(3) + bin(RGB[0] >> 3)[2:].zfill(5) + "0" + bin(RGB[2] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
                     bitey = int(temp, 2).to_bytes(2, "big")
-                    ###print(temp, bitey)
                     if extraOffsets[sport][i] == 0:
-                        ###print(paletteOffset + i*2)
                         file.seek(paletteOffset + i*2, 0)
                         file.write(bitey)
                     else:
-                        ###print(extraOffsets[sport][i])
                         file.seek(extraOffsets[sport][i], 0)
                         file.write(bitey)
-                ###print(paletteOffset + 8)
                 file.seek(paletteOffset + 8, 0)
                 for i in range(4, 0x20):
                     RGB = hexCodes[i]
-                    ###print(RGB, bin(RGB[0] >> 3)[2:].zfill(5), bin(RGB[1] >> 3)[2:].zfill(5), bin(RGB[2] >> 3)[2:].zfill(5))
                     G = bin(RGB[1] >> 3)[2:].zfill(5)
                     temp = G[2:].zfill(3) + bin(RGB[0] >> 3)[2:].zfill(5) + "0" + bin(RGB[2] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
                     bitey = int(temp, 2).to_bytes(2, "big")
-                    ###print(temp, bitey)
                     file.write(bitey)
-            check = input("Do you want to save your subtile graphics to the file? (if no, don't enter anything)")
+            check = input("Do you want to save your subtile graphics to the file? (if no, don't enter anything): ")
             if check != "":
                 pass
                 subtileyOffset = subtileGraphicsOffsets[sport]
@@ -335,14 +381,12 @@ def saveThineData(sport):
                         elif num == "3":
                             left += "1"
                             right += "1"
-                    ###print(quaternary, left, right)
                     file.write(int(left, 2).to_bytes())
                     file.write(int(right, 2).to_bytes())
 
-            check = input("Do you want to save your bigtile subtile graphic configurations and collisions to the file? (if no, don't enter anything)")
+            check = input("Do you want to save your bigtile subtile graphic configurations and collisions to the file? (if no, don't enter anything): ")
             if check != "":
                 file.seek(bigtileCollisionOffsets[sport], 0)
-                ###print([i for i in bigtileCollisions])
                 for bytten in bigtileCollisions:
                     file.write(bytten.to_bytes())
                 file.seek(bigtileCollisionOffsets[sport] + 0x40A, 0)
@@ -359,44 +403,20 @@ def saveThineData(sport):
     print("No changes have been made.")
     return
 
+def pngify(name):
+    if not os.path.exists(f"tiles/{name}"):
+        os.makedirs(f"tiles/{name}")
+    count = 0
+    for bitmap in glob.glob(f"tiles/temptiles/*.bmp"):
+        Image.open(bitmap).save(f"tiles/{name}/tile{count}.png")
+        count += 1
 
-hexCodes = [[100,0,0]]*0x20
-bigtilePalettes = [0]*0x400
-subtileGraphics = ["00000000"]*0x1EA0
-bigtileSubtiles = [0]*0x400
-bigtileCollisions = [0]*0x400
-subtileSelected = 0
-colourSelected = 1
-paletteSelected = 1
-subtileMode = True
-colours = [[255, 219, 182], [102, 102, 102], [129, 212, 26], [180, 199, 220], [255, 166, 166], [107, 94, 155], [129, 172, 166], [129, 55, 9], [52, 101, 164], [255, 128, 0], [120, 3, 115], [21, 132, 102], [241, 13, 12], [34, 75, 18], [172, 178, 12]]
-collisionColourMapper = {0x00 : 0,
-           0x02 : 1,
-           0x03 : 2,
-           0x08 : 3,
-           0x0C : 4,
-           0x11 : 5,
-           0x21 : 6,
-           0x31 : 7,
-           0x32 : 8,
-           0x33 : 9,
-           0x42 : 10,
-           0x73 : 11,
-           0x82 : 12,
-           0xB3 : 13,
-           0xC0 : 14}
-collisionSelected = 0
-bigtileSelected = 0
-bigtileQuadrantSelected = 0
-subtileyPalleteyThingies = [False]*4 # priority, vt_flip, hz_flip, bank
-ox400IndexThingForHere = 0
-displayBigtileSubtiles = True
-displayBigtileCollision = True
-alpher = True
-scrollLeft = False
-scrollRight = False
-
-sportTypeButtonMover(0)
+    if not os.path.exists(f"tiles/{name}_effects"):
+        os.makedirs(f"tiles/{name}_effects")
+    count = 0
+    for bitmap in glob.glob(f"tiles/efftemptiles/*.bmp"):
+        Image.open(bitmap).save(f"tiles/{name}_effects/tile{count}.png")
+        count += 1
 
 
 def wowowo():
@@ -411,14 +431,12 @@ def wowowo():
                     if Y < 50 or Y >= 370:
                         continue
                     rectangle = pygame.Rect = (X, Y, 4, 4)
-                    # curPalette = bigtilePalettes[l+(k*16)] & 7
                     try:
                         colourSelected = int(subtileGraphics[((k * 16) + l) * 8 + i][j])
                     except Exception:
                         return
                     pygame.draw.rect(SCREEN, hexCodes[colourSelected + paletteSelected * 4],
-                                     rectangle)  # wanted to add (curPalette * 4) to the hexcodes index but not yet
-                    # pygame.draw.rect(SCREEN, (i*10, j*10, l*8), rectangle)#
+                                     rectangle)  # gotta use paletteSelected for this because subtiles aren't connected to one palette, rather a palette is assigned upon bigtile construction
 
 #todo probably use this method more often? everything is so janky and spaghettish
 def infoUpdater():
@@ -429,7 +447,6 @@ def infoUpdater():
     global collisionSelected
     global bigtileQuadrantSelected
     global ox400IndexThingForHere
-    ###print(bigtileSelected, bigtileQuadrantSelected)
     ox400IndexThingForHere = bigtileSelected * 2 + bigtileQuadrantSelected % 2 + (bigtileQuadrantSelected // 2) * 0x20 + (bigtileSelected // 0x10) * 0x20
     P = bigtilePalettes[ox400IndexThingForHere]
     collisionSelected = collisionColourMapper[bigtileCollisions[bigtileSelected * 4 + bigtileQuadrantSelected % 4]]
@@ -440,16 +457,13 @@ def infoUpdater():
     subtileyPalleteyThingies[2] = P & 0x20 != 0  # hz_flip
     if P & 0x8 != 0:  # bank
         subtileyPalleteyThingies[3] = True
-        #subtileSelected += 0x200
     else:
         subtileyPalleteyThingies[3] = False
-        #subtileSelected -= 0x200
-    """if subtileyPalleteyThingies[3]:
-        subtileSelected += 0x100"""
     return
 
+pygame.font.init()
+thefont = pygame.font.SysFont("Times New Roman", 32)
 
-clock = pygame.time.Clock()
 #game loop
 running = True
 while running:
@@ -466,7 +480,6 @@ while running:
         programMode = 0
         sportTypeButtonMover(programMode)
     if TILE_EDITOR_BUTTON.draw(SCREEN):
-        #hexCodes = loadSubtileData(sportType)
         programMode = 1
         sportTypeButtonMover(programMode)
 
@@ -595,20 +608,23 @@ while running:
         #draws grid tile images to screen
         gridButtonMaker()
 
-        """ nuked in lieu of a checkerboard
         # toggles the grid spacings (and draws grid button)
         if GRID_BUTTON.slowDraw(SCREEN):
+            checkerenate = not checkerenate
+            pygame.time.wait(200)
+            """#nuked in lieu of a checkerboard
             if gridTileWidth == 32:
                 gridTileWidth = 33
             else:
-                gridTileWidth = 32
-        """
+                gridTileWidth = 32"""
+        if checkerenate:
+            checkerer()
 
         # saving features (and draw save)
         if SAVE_BUTTON.draw(SCREEN):
             CSVList = allLevelTileCSVs[sportType][sportDifficulty]
 
-            filename = input("Name your file (. to skip):") #CSV maker
+            filename = input("Name your file (. to skip): ") #CSV maker
             if filename != ".":
                 with open(f"levels/modified levels/{filename}.csv", "w", newline="") as file:
                     writenator = csv.writer(file, delimiter=",")
@@ -616,7 +632,7 @@ while running:
                         writenator.writerow(CSVList[i:i + 16])
                     print("File saved.")
 
-            bearsname = input("Which bears file should it be saved to? (. to skip):") #GBC editor
+            bearsname = input("Which bears file should it be saved to (.gbc file format assumed, so don't type it)? (. to skip): ") #GBC editor
             if bearsname != ".":
                 try:
                     with open(f"levels/modified levels/{bearsname}.gbc", "r+b") as file:
@@ -632,36 +648,56 @@ while running:
 
         # loading features
         if LOAD_BUTTON.draw(SCREEN):
-            filename = input("input CSV file name here (. to abort):")
+            filename = input("input CSV file name here (.csv file format assumed, so don't type it) (. to abort): ")
             if filename != ".":
                 try:
                     with open(f"levels/modified levels/{filename}.csv", "r") as file:
                         liszt = [int(byte) for byte in re.split(",|\n", file.read())[:-1]] #the -1 takes off the last \n of a csv file
-                        allLevelTileCSVs[int(input("input sport here (toboggan = 0, sled = 1, ..., dirtboard = 6):"))][int(input("input difficulty here (beginner = 0, intermediate = 1, expert = 2):"))] = liszt
+                        allLevelTileCSVs[int(input(f"input sport here (toboggan = 0, sled = 1, ..., dirtboard = 6. the sport currently selected is {sportType}):"))][int(input(f"input difficulty here (beginner = 0, intermediate = 1, expert = 2. the difficulty currently selected is {sportDifficulty})): "))] = liszt
                 except FileNotFoundError:
                     print("File not found.")
 
         # effect vision toggle
-        if EFFECTS_BUTTON.slowDraw(SCREEN):
-            ###print("wowow")
+        if EFFECTS_BUTTON.draw(SCREEN):
             if effectsOn:
                 effectsOn = False
             else:
                 effectsOn = True
-            """ old code, didn't work for transparency and was probably bad also?
-            if effects: # gotta take _effects off
-                for i in range(6):
-                    SPORTS[i] = SPORTS[i][:len(SPORTS[i]) - 8]
-                effects = False
-            else: # gotta add _effects
-                for i in range(6):
-                    SPORTS[i] += "_effects"
-                effects = True
-            """
+            pygame.time.wait(0)
 
             imageList = tileImageStorer()
 
             pygame.time.wait(200)
+
+        if LOAD_FROM_GAME_BUTTON.draw(SCREEN):
+            name = input("input filename (.gbc file format assumed, so don't type it) (. to abort): ")
+            if name != ".":
+                try:
+                    loadLevel(name, sportType, sportDifficulty)
+                except IOError:
+                    print("bad file .. ;( i will now cry")
+
+        if LOAD_FULL_GAME_BUTTON.draw(SCREEN):
+            name = input("input filename (.gbc file format assumed, so don't type it) (. to abort): ")
+            if name != ".":
+                try:
+                    for i in range(6):
+                        for j in range(3):
+                            loadLevel(name, i, j)
+                except IOError:
+                    print("bad file .. ;( i will now cry")
+
+        if LOAD_LEVEL_TILES_BUTTON.draw(SCREEN):
+            name = input("input folder name (e.g. if in the levels folder you have toboggan and tobogganEffects, type toboggan. to fill these folders, use the tile editor mode): ")
+            if name != ".":
+                if os.path.exists(f"tiles/{name}") and os.path.exists(f"tiles/{name}_effects"):
+                    temp = SPORTS[sportType]
+                    SPORTS[sportType] = name
+                    print(f"{temp} has been replaced by {name}.")
+                    imageList = tileImageStorer()
+                    CLICKY_TILES = buttonMaker()
+                else:
+                    print(f"couldn't find one of the two folders ({name} or {name}_effects) in the tiles folder")
 
         #mouse tracker (for tile grid clicking)
         mousePos = pygame.mouse.get_pos()
@@ -704,11 +740,17 @@ while running:
                 # if event.key == pygame.K_RSHIFT or event.key == pygame.K_LSHIFT:
                 # scrollSpeed = 5
                 #changing bigtile:
-                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    scrollLeft = True
-                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    scrollRight = True
-                #print(bigtileSelected)
+                if not subtileMode:
+                    if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                        scrollLeft = True
+                        if waiter:
+                            pygame.time.wait(100)
+                        waiter = False
+                    if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                        scrollRight = True
+                        if waiter:
+                            pygame.time.wait(100)
+                        waiter = False
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
@@ -717,8 +759,10 @@ while running:
                     scrollDown = False
                 if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                     scrollLeft = False
+                    waiter = True
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     scrollRight = False
+                    waiter = True
                 # if event.key == pygame.K_RSHIFT or event.key == pygame.K_LSHIFT:
                 # scrollSpeed = 1
 
@@ -745,8 +789,8 @@ while running:
                 bigtileSelected = 255
             infoUpdater()
 
-        if scroll2 < -716:
-            scroll2 = -716
+        if scroll2 < -704:
+            scroll2 = -704
 
         if scroll2 > 0:
             scroll2 = 0
@@ -756,34 +800,28 @@ while running:
         mouseX = (mousePos[0])
         mouseY = (mousePos[1])
 
+        #clicks
         if pygame.mouse.get_pressed()[0] == 1:
-            #print("CLICK")
-            #print(mouseX, mouseY)
             #clicking a palette and colour (choose them and change cur quadrant)
             if mouseX > 0 and mouseX < 80 and mouseY > 0 and mouseY < 160:
-                ###print("A")
                 colourSelected = (mouseX // 20)
                 paletteSelected = mouseY // 20
                 if not subtileMode:
                     ox400IndexThingForHere = bigtileSelected*2 + bigtileQuadrantSelected%2 + (bigtileQuadrantSelected//2)*0x20 + (bigtileSelected//0x10)*0x20
                     bigtilePalettes[ox400IndexThingForHere] = (bigtilePalettes[ox400IndexThingForHere] & 0b11111000) | paletteSelected
 
-                #hexCodes[(mouseY//20)*4+(mouseX//20)]
             #clicking a big subtile thingy to change it
             elif mouseX > 100 and mouseX < 420 and mouseY > 50 and mouseY < 370:
-                ###print("B")
                 if subtileMode:
                     colnum = ((mouseX - 100) // 40)
                     rownum = ((mouseY - 50) // 40)
                     index = subtileSelected * 8 + rownum
-                    ###print(subtileSelected, rownum, colnum)
                     if index < len(subtileGraphics):
                         subtileGraphics[index] = subtileGraphics[index][0:colnum] + str(colourSelected) + subtileGraphics[index][colnum+1:]
                 else:
                 #clicking a big bigtile quadrant
                     bigtileQuadrantSelected = ((mouseX-100)//160) + ((mouseY-50)//160)*2
                     ox400IndexThingForHere = bigtileSelected*2 + bigtileQuadrantSelected%2 + (bigtileQuadrantSelected//2)*0x20 + (bigtileSelected//0x10)*0x20
-                    ###print(ox400IndexThingForHere)
                     P = bigtilePalettes[ox400IndexThingForHere]
                     collisionSelected = collisionColourMapper[bigtileCollisions[bigtileSelected*4 + bigtileQuadrantSelected%4]]
                     subtileSelected = bigtileSubtiles[ox400IndexThingForHere]
@@ -805,63 +843,42 @@ while running:
                 ###print("C")
                 subtileSelected = int(((mouseY-scroll2-50) // 32) * 16 + ((mouseX-750) // 32))
                 if subtileSelected < 0x100:
-                    if subtileyPalleteyThingies[3] == True and not subtileMode:
-                        #subtileSelected += 0x100
+                    if subtileyPalleteyThingies[3] == True:
                         bigtilePalettes[ox400IndexThingForHere] ^= 0x8
                         subtileyPalleteyThingies[3] = False
                 else:
-                    if subtileyPalleteyThingies[3] == False and not subtileMode:
-                        #subtileSelected -= 0x100
+                    if subtileyPalleteyThingies[3] == False:
                         bigtilePalettes[ox400IndexThingForHere] ^= 0x8
                         subtileyPalleteyThingies[3] = True
                 subtileSelected %= 0x100  # bytes above 255 still hafta go back
-                ###print(subtileSelected)
                 if not subtileMode:
                     ox400IndexThingForHere = bigtileSelected*2 + bigtileQuadrantSelected%2 + (bigtileQuadrantSelected//2)*0x20 + (bigtileSelected//0x10)*0x20
                     bigtileSubtiles[ox400IndexThingForHere] = subtileSelected
 
             #clicking a collision colour (and change cur quadrant)
             elif mouseX > 0 and mouseX < 120 and mouseY > 400 and mouseY < 600 and not subtileMode:
-                ###print("D")
                 collisionSelected = ((mouseY-400)//40)*3+(mouseX//40)
-                ###print(collisionSelected)
                 for key in collisionColourMapper:
                     if collisionColourMapper[key] == collisionSelected:
-                        ###print(key)
                         bigtileCollisions[bigtileSelected * 4 + bigtileQuadrantSelected % 4] = key
                         break
 
             #clicking a subtileythingy
             elif mouseX > 500 and mouseX < 700 and mouseY > 300 and mouseY < 350:
                 ###print("E")
-                if mouseX < 540:
-                    #print(bigtilePalettes[ox400IndexThingForHere])
+                if mouseX < 540: #button 1 (prio)
                     subtileyPalleteyThingies[0] = not subtileyPalleteyThingies[0]
                     bigtilePalettes[ox400IndexThingForHere] ^= 0x80
-                    #print(bigtilePalettes[ox400IndexThingForHere])
-                elif mouseX > 550 and mouseX < 590:
+                elif mouseX > 550 and mouseX < 590: #button 2 (vt flip)
                     subtileyPalleteyThingies[1] = not subtileyPalleteyThingies[1]
                     bigtilePalettes[ox400IndexThingForHere] ^= 0x40
-                elif mouseX > 600 and mouseX < 640:
+                elif mouseX > 600 and mouseX < 640: #button 3 (hz flip)
                     subtileyPalleteyThingies[2] = not subtileyPalleteyThingies[2]
                     bigtilePalettes[ox400IndexThingForHere] ^= 0x20
-                elif mouseX > 650:
+                elif mouseX > 650: #button 4 (bank)
                     subtileyPalleteyThingies[3] = not subtileyPalleteyThingies[3]
                     bigtilePalettes[ox400IndexThingForHere] ^= 0x8
-                    """if subtileyPalleteyThingies[3]:
-                        subtileSelected += 0x100
-                    else:
-                        subtileSelected -= 0x100"""
-                ###print(subtileSelected)
-
                 pygame.time.wait(100)
-
-            ###else:
-                ###print("F")
-
-            #
-            #if not subtileMode and mouseX > 0 and mouseX < 120 and mouseY > 400 and mouseY < 600:
-            #    mouseX
 
 
         #right clicks
@@ -895,6 +912,74 @@ while running:
 
         if SAVE_BUTTON.draw(SCREEN):
             saveThineData(sportType)
+
+        #making pngs of bigtiles
+        if PRINT_BUTTON.draw(SCREEN):
+            #making folders if needed
+            if not os.path.exists(f"tiles/temptiles"):
+                os.makedirs(f"tiles/temptiles")
+            if not os.path.exists(f"tiles/efftemptiles"):
+                os.makedirs(f"tiles/efftemptiles")
+            #loop for each bigtile
+            for i in range(0x100):
+                guaug = []
+                for j in (1,0): #first j will add the bottom subtiles to guaug, second j will add the top ones (no idea why it needs to be 0 1, it just doesn't work as 1, 0 though my logic sayc it should wasawawawa)
+                    ox400er = (i%0x10)*2 + (i//0x10)*0x40 + (j)*0x20 #weirdo address calculator because it's stored all messily
+                    P = bigtilePalettes[ox400er:ox400er+2] #palette data at address and address + 1
+                    palettes = [pal & 7 for pal in P] #and 7 to get the palette number (stored in bits 0 1 and 2)
+                    palettecode = []
+                    graphicsies = []
+                    for k in (0,1): #first does the left subtile, next does the right subtile
+                        for l in range(4): # converting hex code palette data into bitmap file palette data
+                            RGB = hexCodes[palettes[k]*4 + l]
+                            G = bin(RGB[1] >> 3)[2:].zfill(5) #next is a lil different as BMP uses GGGBBBBB XRRRRRGG
+                            temp = G[2:].zfill(3) + bin(RGB[2] >> 3)[2:].zfill(5) + "0" + bin(RGB[0] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
+                            bitey = int(temp, 2).to_bytes(2, "big")
+                            palettecode.append(bitey)
+
+                        subtile = bigtileSubtiles[ox400er+k] + (P[k]&0x8)*0x20 #add 0x100, the 02 is just b/c multed with 0x8 cuz less lines, so felt like it
+                        graphicsies.append(subtileGraphics[subtile*8:subtile*8+8][::-1]) #stores quaternary row graphics, so need to get the 8 starting at s*8
+                    for k in (0,1):
+                        if bigtilePalettes[ox400er+k] & 0x40: #vt flip
+                            graphicsies[k] = graphicsies[k][::-1]
+                        if bigtilePalettes[ox400er+k] & 0x20: #hz flip
+                            for l in range(8):
+                                graphicsies[k][l] = graphicsies[k][l][::-1]
+                    for k in range(8):
+                        for bit in graphicsies[0][k]:#graphicsies[0] has 8 bytes in its list (contains the left subtile's data.) ([1] has 8 bytes for the right subtile)
+                            guaug.append(palettecode[int(bit)]) #would += to a b'' but that takes super long
+                        for bit in graphicsies[1][k]:
+                            guaug.append(palettecode[int(bit)+4])
+                with open(f"tiles/temptiles/tile{str(i).zfill(3)}.bmp", "wb") as bmp:
+                    bmp.write(b'BM\x00\x00\x00\x00\x00\x00\x00\x006\x00\x00\x00(\x00\x00\x00' + (16).to_bytes(4, "little") + (16).
+                    to_bytes(4, "little") + b'\x01\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+                    b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b''.join(guaug))
+                ######
+                ###### now collisions
+                gorg = b''
+                for j in (1,0): #first j will add the bottom subtiles to guaug, second j will add the top ones (no idea why it needs to be 0 1, it just doesn't work as 1, 0 though my logic sayc it should wasawawawa)
+                    ox400er = i*4 + j*2 #normal this time
+                    C = bigtileCollisions[ox400er:ox400er+2]
+                    wwwwww = b''
+                    for k in range(2):
+                        for l, key in enumerate(collisionColourMapper):
+                            if key == C[k]:
+                                RGB = colours[l]
+                                break
+                        G = bin(RGB[1] >> 3)[2:].zfill(5)  # next is a lil different as BMP uses GGGBBBBB XRRRRRGG
+                        temp = G[2:].zfill(3) + bin(RGB[2] >> 3)[2:].zfill(5) + "0" + bin(RGB[0] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
+                        wwwwww += (int(temp, 2).to_bytes(2, "big") * 8)
+                    gorg += (wwwwww)*8
+                with open(f"tiles/efftemptiles/tile{str(i).zfill(3)}.bmp", "wb") as bmp:
+                    bmp.write(b'BM\x00\x00\x00\x00\x00\x00\x00\x006\x00\x00\x00(\x00\x00\x00' + (16).to_bytes(4, "little") + (16).
+                    to_bytes(4, "little") + b'\x01\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+                    b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' + gorg)
+            print("tiles saved to temp folders in levels as bmp files!")
+            name = input("do you want to turn these into png files, and if so to which folder should they be saved? (make the folder with 'name' and 'name_effects' beforehand) (leave blank for no): ")
+            if name != "":
+                pngify(name)
+            pygame.time.wait(200)
+            print("done! :)")
 
 
         #testing drawing palettes
@@ -947,12 +1032,8 @@ while running:
                             #print(k, K)
                             for l, L in enumerate(hz_range):
                                 rectangle = pygame.Rect = ((100 + l*20 + j*160), (50 + k*20 + i*160), 20, 20)
-                                #print(subtileGraphics[bigtileSubtiles[bigtileSelected*4+i*2+j]*8+k][l])
-                                #print(bigtileSubtiles, bigtileSelected)
-                                #print("orgh" + str(i) + str(j) + str(k) + str(l) + "aa" + str(bigtileSubtiles[bigtileSelected*4+i*2+j]+k))
                                 try:
                                     pygame.draw.rect(SCREEN, hexCodes[(palalala&7)*4+int(subtileGraphics[bigtileSubtiles[ox400LengthStartIndex]*8+K+go_long*0x800][L])], rectangle)
-                                    #pygame.draw.rect(SCREEN, hexCodes[(palalala&7)*4+int(subtileGraphics[bigtileSubtiles[ox400LengthStartIndex]*8+K+go_long*0x800][L])], rectangle)
                                 except Exception:
                                     continue
 
@@ -960,19 +1041,11 @@ while running:
                 #drawing collison on big bigtile
                 for i in range(2):
                     for j in range(2):
-                        #ox400LengthStartIndex = bigtileSelected * 2 + j + (i * 0x20) + (bigtileSelected // 16) * 0x20
-                        #rectangle = pygame.Rect = ((100 + j * 40), (50 + i * 40), 160, 160)
                         s = pygame.Surface((160, 160))
                         if alpher:
                             s.set_alpha(150)
-                        #print("ourhg", ox400LengthStartIndex)
-                        #bigtileSelected * 4 + bigtileQuadrantSelected % 4
                         s.fill(colours[collisionColourMapper[bigtileCollisions[bigtileSelected * 4 + j + i*2]]])
                         SCREEN.blit(s, (100 + j * 160, 50 + i * 160))
-                        #else:
-                        #    rectangle = pygame.Rect = ((100 + j * 40), (50 + i * 40), 160, 160)
-                        #    Cololo = colours[collisionColourMapper[bigtileCollisions[bigtileSelected * 4 + j + i*2]]]
-                        #    pygame.draw.rect(SCREEN, Cololo, rectangle)
 
         # highlight the selected quadrant
         if not subtileMode:
@@ -981,9 +1054,6 @@ while running:
 
         wowowo()
         # and highlight the selected one
-        #X = (750 + (j * 4) + (l * 32))
-        #Y = (50 + (i * 4) + (k * 32)) + scroll2
-        #if Y < 50 or Y > 400:
         lowerer = 0
         if subtileyPalleteyThingies[3]:
             lowerer = 512
@@ -1024,5 +1094,11 @@ while running:
                 displayBigtileCollision = not displayBigtileCollision
                 pygame.time.wait(20)
 
+            SCREEN.blit(thefont.render(f"↔  bigtile: {bigtileSelected}", False, (0, 0, 0)), (100, 8))
+
+        adder = 0
+        if subtileyPalleteyThingies[3]:
+            adder = 0x100
+        SCREEN.blit(thefont.render(f"(scroll/↕)  subtile: {subtileSelected + adder}", False, (0, 0, 0)), (950, 8))
 
     pygame.display.update()
