@@ -271,7 +271,7 @@ def loadSubtileData(sport):
     subtileGraphicsOffsets = [0x5976, 0x99D7, 0xD8EB, 0x119B4, 0x15AFB, 0x19C3B]
     subtileGraphicsLengths = [0x1EA0, 0x1DC0, 0x1FA0, 0x1FD0, 0x1F70, 0x1900]
     #subtileColoursOffsets = above two added, plus 0xA
-    name = "bears" #input("enter bears file name here (.gbc file format assumed, so don't type it) (say E for empty subtiles) (. to abort): ")
+    name = input("enter bears file name here (.gbc file format assumed, so don't type it) (say E for empty subtiles) (. to abort): ")
     while name == "E":
         if input("are you sure? (E again if yes): ") == "E":
             hexCodes = [[0, 0, 0]] * 0x20
