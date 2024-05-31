@@ -44,6 +44,7 @@ PRINT_IMAGE = pygame.image.load(f'tile_editor_pictures/printButton.png')
 LOAD_FROM_GAME_IMAGE = pygame.image.load(f'tile_editor_pictures/loadFromGameButton.png')
 LOAD_FULL_GAME_IMAGE = pygame.image.load(f'tile_editor_pictures/loadFullGameButton.png')
 LOAD_LEVEL_TILES_IMAGE = pygame.image.load(f'tile_editor_pictures/loadLevelTilesButton.png')
+INFO_IMAGE = pygame.image.load(f'tile_editor_pictures/infoButton.png')
 
 #buttons for the tile map
 def gridButtonMaker():
@@ -89,7 +90,6 @@ scrollDown = False
 scroll = 0
 scroll2 = 0
 #scrollSpeed = 1
-#scalingFactor = 2 (if ever you do want to bring this back, you'll have to a bunch of grid/tile related stuff by it (imagestorer, grid, etc) or maybe not since pygame can transform)
 horizontalLineCount = 538
 VERTICAL_LINE_COUNT = 16
 NUMBER_OF_TILES = 256
@@ -97,13 +97,12 @@ chosenTile = 0
 gridTileWidth = 32
 allLevelTileCSVs = []
 inventoryIndex = 0
-#effects = False   old
 effectsOn = False
 programMode = 0
 clock = pygame.time.Clock()
 checkerenate = False
 
-#various
+#various mode 1 or both
 hexCodes = [[100,0,0]]*0x20
 bigtilePalettes = [0]*0x400
 subtileGraphics = ["00000000"]*0x1EA0
@@ -140,6 +139,11 @@ alpher = True
 scrollLeft = False
 scrollRight = False
 waiter = True
+infoMode = False
+undoStack = []
+redoStack = []
+currentSubtileStackInfo = []
+
 
 #tilemap data storage (lists in lists, where list[sport][diff] = the correct data)
 for sport in range(6):
@@ -215,6 +219,7 @@ PRINT_BUTTON = button.Button(830, 10, PRINT_IMAGE, 1)
 LOAD_FROM_GAME_BUTTON = button.Button(830, 10, LOAD_FROM_GAME_IMAGE, 1)
 LOAD_FULL_GAME_BUTTON = button.Button(870, 10, LOAD_FULL_GAME_IMAGE, 1)
 LOAD_LEVEL_TILES_BUTTON = button.Button(910, 10, LOAD_LEVEL_TILES_IMAGE, 1)
+INFO_BUTTON = button.Button(1240, 10, INFO_IMAGE, 1)
 
 #clickable tile buttons
 def buttonMaker():
@@ -266,7 +271,7 @@ def loadSubtileData(sport):
     subtileGraphicsOffsets = [0x5976, 0x99D7, 0xD8EB, 0x119B4, 0x15AFB, 0x19C3B]
     subtileGraphicsLengths = [0x1EA0, 0x1DC0, 0x1FA0, 0x1FD0, 0x1F70, 0x1900]
     #subtileColoursOffsets = above two added, plus 0xA
-    name = input("enter bears file name here (.gbc file format assumed, so don't type it) (say E for empty subtiles) (. to abort): ")
+    name = "bears" #input("enter bears file name here (.gbc file format assumed, so don't type it) (say E for empty subtiles) (. to abort): ")
     while name == "E":
         if input("are you sure? (E again if yes): ") == "E":
             hexCodes = [[0, 0, 0]] * 0x20
@@ -447,6 +452,9 @@ def infoUpdater():
     global collisionSelected
     global bigtileQuadrantSelected
     global ox400IndexThingForHere
+    global undoStack
+    global redoStack
+    global currentSubtileStackInfo
     ox400IndexThingForHere = bigtileSelected * 2 + bigtileQuadrantSelected % 2 + (bigtileQuadrantSelected // 2) * 0x20 + (bigtileSelected // 0x10) * 0x20
     P = bigtilePalettes[ox400IndexThingForHere]
     collisionSelected = collisionColourMapper[bigtileCollisions[bigtileSelected * 4 + bigtileQuadrantSelected % 4]]
@@ -459,6 +467,10 @@ def infoUpdater():
         subtileyPalleteyThingies[3] = True
     else:
         subtileyPalleteyThingies[3] = False
+    undoStack = []
+    redoStack = []
+    currentSubtileStackInfo = subtileGraphics[subtileSelected*8:subtileSelected*8+8]
+    print("updater", currentSubtileStackInfo)
     return
 
 pygame.font.init()
@@ -476,6 +488,11 @@ while running:
     #bg colour
     SCREEN.fill((36, 45, 104))
 
+    #mouse pos tracker
+    mousePos = pygame.mouse.get_pos()
+    mouseX = (mousePos[0])
+    mouseY = (mousePos[1])
+
     if COURSE_EDITOR_BUTTON.draw(SCREEN):
         programMode = 0
         sportTypeButtonMover(programMode)
@@ -483,10 +500,33 @@ while running:
         programMode = 1
         sportTypeButtonMover(programMode)
 
+
+
+    # info mode, stops other modes to make things a bit quicker
+    if infoMode:
+        if programMode == 0:
+            INFO_IMAGE = pygame.image.load(f'tile_editor_pictures/infoCourseEditor.png')
+        else:
+            INFO_IMAGE = pygame.image.load(f'tile_editor_pictures/infoTileEditor.png')
+
+
+
+        pygame.event.get()
+        while not INFO_BUTTON.draw(SCREEN):
+            SCREEN.blit(INFO_IMAGE, (0, 0))
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+        infoMode = not infoMode
+        pygame.time.wait(200)
+
+
+
     #
     # COURSE EDITOR MODE
     #
-    if programMode == 0:
+    elif programMode == 0:
 
         # event handler
         for event in pygame.event.get():
@@ -663,7 +703,6 @@ while running:
                 effectsOn = False
             else:
                 effectsOn = True
-            pygame.time.wait(0)
 
             imageList = tileImageStorer()
 
@@ -699,10 +738,13 @@ while running:
                 else:
                     print(f"couldn't find one of the two folders ({name} or {name}_effects) in the tiles folder")
 
-        #mouse tracker (for tile grid clicking)
-        mousePos = pygame.mouse.get_pos()
-        mouseX = (mousePos[0]) // (gridTileWidth)
-        mouseY = (mousePos[1] - scroll) // (gridTileWidth)
+        if INFO_BUTTON.draw(SCREEN):
+            infoMode = not infoMode
+            pygame.time.wait(200)
+
+        #mouse tracker (adjusted for tile grid clicking)
+        mouseX = mouseX // (gridTileWidth)
+        mouseY = (mouseY - scroll) // (gridTileWidth)
 
         if mouseX < VERTICAL_LINE_COUNT and mouseX >= 0 and mouseY < horizontalLineCount:
             if pygame.mouse.get_pressed()[0] == 1 and allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] != chosenTile:
@@ -716,15 +758,19 @@ while running:
             tempPic = pygame.transform.scale(imageList[sportType+(effectsOn*6)][tileInvPictures[i]], (16, 16)) #this seems bad, maybe use 2 lists, one which stores numbers and another which stores pictures?
             SCREEN.blit(tempPic, (583 + (i * 18), 275))
 
+
     #
     # SUBTILE PAINT MODE AND BIGTILE CONSTRUCTOR MODE
     #
     elif programMode == 1:
         if SUBTILE_EDITOR_BUTTON.draw(SCREEN):
             subtileMode = True
+            currentSubtileStackInfo = subtileGraphics[subtileSelected*8:subtileSelected*8+8]
+            print("mode", currentSubtileStackInfo)
         if BIGTILE_EDITOR_BUTTON.draw(SCREEN):
             subtileMode = False
         for event in pygame.event.get():
+            #print(event.type)
             if event.type == pygame.QUIT:
                 running = False
 
@@ -751,6 +797,27 @@ while running:
                         if waiter:
                             pygame.time.wait(100)
                         waiter = False
+                else:
+                    if event.key == pygame.K_z:
+                        if undoStack != []:
+                            latest = undoStack.pop()
+                            undoneSubtileSelected = latest[0]
+                            redoStack.append([undoneSubtileSelected,subtileGraphics[undoneSubtileSelected*8:undoneSubtileSelected*8+8]])
+                            if len(redoStack) > 150:
+                                redoStack = redoStack[50:]
+                            subtileGraphics[undoneSubtileSelected*8:undoneSubtileSelected*8+8] = latest[1]
+                            currentSubtileStackInfo = subtileGraphics[subtileSelected*8:subtileSelected*8+8]
+                            print("undo", currentSubtileStackInfo)
+                    elif event.key == pygame.K_y:
+                        if redoStack != []:
+                            latest = redoStack.pop()
+                            undoneSubtileSelected = latest[0]
+                            undoStack.append([undoneSubtileSelected,subtileGraphics[undoneSubtileSelected*8:undoneSubtileSelected*8+8]])
+                            if len(undoStack) > 150:
+                                undoStack = undoStack[50:]
+                            subtileGraphics[undoneSubtileSelected*8:undoneSubtileSelected*8+8] = latest[1]
+                            currentSubtileStackInfo = subtileGraphics[subtileSelected*8:subtileSelected*8+8]
+
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
@@ -763,6 +830,15 @@ while running:
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     scrollRight = False
                     waiter = True
+
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1: #lmb up, check if undo stack should be updated
+                if subtileGraphics[subtileSelected*8:subtileSelected*8+8] != currentSubtileStackInfo:
+                    undoStack.append([subtileSelected, currentSubtileStackInfo])
+                    if len(undoStack) > 150:
+                        undoStack = undoStack[50:]
+                    redoStack = []
+                currentSubtileStackInfo = subtileGraphics[subtileSelected*8:subtileSelected*8+8]
+                print("mouseup", currentSubtileStackInfo)
                 # if event.key == pygame.K_RSHIFT or event.key == pygame.K_LSHIFT:
                 # scrollSpeed = 1
 
@@ -795,10 +871,7 @@ while running:
         if scroll2 > 0:
             scroll2 = 0
 
-        # mouse tracker (for various clicking)
-        mousePos = pygame.mouse.get_pos()
-        mouseX = (mousePos[0])
-        mouseY = (mousePos[1])
+
 
         #clicks
         if pygame.mouse.get_pressed()[0] == 1:
@@ -840,6 +913,11 @@ while running:
 
             #clicking a small subtile
             elif mouseX > 750 and mouseX < 1262 and mouseY > 50 and mouseY < 370:
+                if subtileGraphics[subtileSelected*8:subtileSelected*8+8] != currentSubtileStackInfo:
+                    undoStack.append([subtileSelected, currentSubtileStackInfo])
+                    if len(undoStack) > 150:
+                        undoStack = undoStack[50:]
+                    redoStack = []
                 ###print("C")
                 subtileSelected = int(((mouseY-scroll2-50) // 32) * 16 + ((mouseX-750) // 32))
                 if subtileSelected < 0x100:
@@ -854,6 +932,9 @@ while running:
                 if not subtileMode:
                     ox400IndexThingForHere = bigtileSelected*2 + bigtileQuadrantSelected%2 + (bigtileQuadrantSelected//2)*0x20 + (bigtileSelected//0x10)*0x20
                     bigtileSubtiles[ox400IndexThingForHere] = subtileSelected
+                else:
+                    currentSubtileStackInfo = subtileGraphics[subtileSelected*8:subtileSelected*8+8]
+                    print("small", currentSubtileStackInfo)
 
             #clicking a collision colour (and change cur quadrant)
             elif mouseX > 0 and mouseX < 120 and mouseY > 400 and mouseY < 600 and not subtileMode:
@@ -1052,6 +1133,7 @@ while running:
             highlightangle = (100 + (bigtileQuadrantSelected % 2) * 160, 50 + (bigtileQuadrantSelected // 2) * 160, 160, 160)
             pygame.draw.rect(SCREEN, (255, 0, 0), highlightangle, 1)
 
+        # drawing the subtile menu thing in top right
         wowowo()
         # and highlight the selected one
         lowerer = 0
@@ -1094,11 +1176,15 @@ while running:
                 displayBigtileCollision = not displayBigtileCollision
                 pygame.time.wait(20)
 
-            SCREEN.blit(thefont.render(f"↔  bigtile: {bigtileSelected}", False, (0, 0, 0)), (100, 8))
+            SCREEN.blit(thefont.render(f"bigtile: {bigtileSelected}", False, (0, 0, 0)), (100, 8))
 
         adder = 0
         if subtileyPalleteyThingies[3]:
             adder = 0x100
-        SCREEN.blit(thefont.render(f"(scroll/↕)  subtile: {subtileSelected + adder}", False, (0, 0, 0)), (950, 8))
+        SCREEN.blit(thefont.render(f"subtile: {subtileSelected + adder}", False, (0, 0, 0)), (950, 8))
+
+        if INFO_BUTTON.draw(SCREEN):
+            infoMode = not infoMode
+            pygame.time.wait(200)
 
     pygame.display.update()
