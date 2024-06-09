@@ -20,71 +20,12 @@ SCREEN = pygame.display.set_mode((screenWidth, screenHeight))
 ICON = pygame.image.load("tile_editor_pictures/raftin.png")
 pygame.display.set_icon(ICON)
 
-#non tile images
-TOBOGGAN_IMAGE = pygame.image.load(f'tile_editor_pictures/tobogganButton.png').convert_alpha()
-SLED_IMAGE = pygame.image.load(f'tile_editor_pictures/sledButton.png').convert_alpha()
-RAFT_IMAGE = pygame.image.load(f'tile_editor_pictures/raftButton.png').convert_alpha()
-KAYAK_IMAGE = pygame.image.load(f'tile_editor_pictures/kayakButton.png').convert_alpha()
-BIKE_IMAGE = pygame.image.load(f'tile_editor_pictures/bikeButton.png').convert_alpha()
-DIRTBOARD_IMAGE = pygame.image.load(f'tile_editor_pictures/dirtboardButton.png').convert_alpha()
-BEGINNER_IMAGE = pygame.image.load(f'tile_editor_pictures/beginnerButton.png').convert_alpha()
-INTERMEDIATE_IMAGE = pygame.image.load(f'tile_editor_pictures/intermediateButton.png').convert_alpha()
-EXPERT_IMAGE = pygame.image.load(f'tile_editor_pictures/expertButton.png').convert_alpha()
-GRID_IMAGE = pygame.image.load(f'tile_editor_pictures/gridButton.png').convert_alpha()
-SAVE_IMAGE = pygame.image.load(f'tile_editor_pictures/saveButton.png').convert_alpha()
-LOAD_IMAGE = pygame.image.load(f'tile_editor_pictures/loadButton.png').convert_alpha()
-EFFECTS_IMAGE = pygame.image.load(f'tile_editor_pictures/effectsButton.png')
-COURSE_EDITOR_IMAGE = pygame.image.load(f'tile_editor_pictures/courseEditorButton.png')
-TILE_EDITOR_IMAGE = pygame.image.load(f'tile_editor_pictures/tileEditorButton.png')
-SUBTILE_EDITOR_IMAGE = pygame.image.load(f'tile_editor_pictures/subtileEditorButton.png')
-BIGTILE_EDITOR_IMAGE = pygame.image.load(f'tile_editor_pictures/bigtileEditorButton.png')
-TOGGLE_SUBTILES_IMAGE = pygame.image.load(f'tile_editor_pictures/toggleSubtilesButton.png')
-TOGGLE_COLLISIONS_IMAGE = pygame.image.load(f'tile_editor_pictures/toggleCollisionsButton.png')
-PRINT_IMAGE = pygame.image.load(f'tile_editor_pictures/printButton.png')
-LOAD_FROM_GAME_IMAGE = pygame.image.load(f'tile_editor_pictures/loadFromGameButton.png')
-LOAD_FULL_GAME_IMAGE = pygame.image.load(f'tile_editor_pictures/loadFullGameButton.png')
-LOAD_LEVEL_TILES_IMAGE = pygame.image.load(f'tile_editor_pictures/loadLevelTilesButton.png')
-INFO_IMAGE = pygame.image.load(f'tile_editor_pictures/infoButton.png')
-INFO_IMAGES = [pygame.image.load(f'tile_editor_pictures/infoCourseEditor.png'), pygame.image.load(f'tile_editor_pictures/infoTileEditor.png')]
-SUBTILE_USAGE_IMAGE = pygame.image.load(f'tile_editor_pictures/checkSubtileUsage.png')
-
-
-#buttons for the tile map
-def gridButtonMaker():
-    currentColumn = 0
-    currentRow = 0
-
-    for byte in allLevelTileCSVs[sportType][sportDifficulty]:
-        temp = currentRow * gridTileWidth + scroll
-        if temp >= -32 and temp <= screenHeight: # don't need to draw things off screen
-            SCREEN.blit(imageList[sportType][byte], (0 + currentColumn * gridTileWidth, 0 + currentRow * gridTileWidth + scroll))
-            if effectsOn:
-                SCREEN.blit(imageList[sportType+6][byte], (0 + currentColumn * gridTileWidth, 0 + currentRow * gridTileWidth + scroll))
-        currentColumn += 1
-        if currentColumn == 16:
-            currentColumn = 0
-            currentRow += 1
-
-def checkerer():
-    temp = (scroll%32)-32
-    layer = 0
-    thetangle = pygame.Surface((32, 32))
-    thetangle.set_alpha(100)
-    thetangle.fill((0,0,0))
-    while temp < screenHeight:
-        for i in range(16):
-            if (i + layer)%2 == 0:
-                SCREEN.blit(thetangle, (i*32, temp))
-        layer += 1
-        temp += 32
-
-
-
 #various mode 0 variables
 CONST_SPORTS = ["toboggan", "sled", "raft", "kayak", "bike", "dirtboard"]
 SPORTS = ["toboggan", "sled", "raft", "kayak", "bike", "dirtboard"]
 DIFFICULTIES = ["Beginner", "Intermediate", "Expert"]
-HORIZONTAL_LINE_VALUES = [0x21B, 0x2A1, 0x31E]
+ORIGINAL_SPORT_HEIGHTS = [[0x21A, 0x2A1, 0x31E], [0x21A, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E]]
+sportHeights = [[0x21A, 0x2A1, 0x31E], [0x21A, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E]]
 BEARS_LEVEL_DATA_OFFSET_RANGES = [[0x28004, 0x2C004, 0x30004], [0x34004, 0x38004, 0x3C004], [0x40004, 0x44004, 0x48004], [0x4C004, 0x50004, 0x54004], [0x58004, 0x5C004, 0x60004], [0x64004, 0x68004, 0x6C004]]
 sportType = 0
 sportDifficulty = 0
@@ -104,6 +45,11 @@ effectsOn = False
 programMode = 0
 clock = pygame.time.Clock()
 checkerenate = False
+BEARS_COURSE_HEIGHT_OFFSETS = [0x4B53, 0x8B6B, 0xCAEF, 0x10B28, 0x14C15, 0x18C2E]
+bearsCourseHorizontalSpawns = [[0xB8, 0x98, 0x58], [0xB8, 0x98, 0x98], [0xB8, 0x98, 0x98], [0xB8, 0x68, 0x68], [0xB8, 0x68, 0x68], [0x78, 0x78, 0x78]]
+selectOrigCoords = []
+stampArr = [[0]]
+drawMode = 0
 
 #various mode 1 or both
 hexCodes = [[100,0,0]]*0x20
@@ -148,6 +94,110 @@ redoStack = []
 currentSubtileStackInfo = []
 quadrantMapper = {0:"TL", 1:"TR", 2:"BL", 3:"BR"}
 
+#non tile images
+TOBOGGAN_IMAGE = pygame.image.load(f'tile_editor_pictures/tobogganButton.png').convert_alpha()
+SLED_IMAGE = pygame.image.load(f'tile_editor_pictures/sledButton.png').convert_alpha()
+RAFT_IMAGE = pygame.image.load(f'tile_editor_pictures/raftButton.png').convert_alpha()
+KAYAK_IMAGE = pygame.image.load(f'tile_editor_pictures/kayakButton.png').convert_alpha()
+BIKE_IMAGE = pygame.image.load(f'tile_editor_pictures/bikeButton.png').convert_alpha()
+DIRTBOARD_IMAGE = pygame.image.load(f'tile_editor_pictures/dirtboardButton.png').convert_alpha()
+BEGINNER_IMAGE = pygame.image.load(f'tile_editor_pictures/beginnerButton.png').convert_alpha()
+INTERMEDIATE_IMAGE = pygame.image.load(f'tile_editor_pictures/intermediateButton.png').convert_alpha()
+EXPERT_IMAGE = pygame.image.load(f'tile_editor_pictures/expertButton.png').convert_alpha()
+GRID_IMAGE = pygame.image.load(f'tile_editor_pictures/gridButton.png').convert_alpha()
+SAVE_IMAGE = pygame.image.load(f'tile_editor_pictures/saveButton.png').convert_alpha()
+LOAD_IMAGE = pygame.image.load(f'tile_editor_pictures/loadButton.png').convert_alpha()
+EFFECTS_IMAGE = pygame.image.load(f'tile_editor_pictures/effectsButton.png')
+COURSE_EDITOR_IMAGE = pygame.image.load(f'tile_editor_pictures/courseEditorButton.png')
+TILE_EDITOR_IMAGE = pygame.image.load(f'tile_editor_pictures/tileEditorButton.png')
+SUBTILE_EDITOR_IMAGE = pygame.image.load(f'tile_editor_pictures/subtileEditorButton.png')
+BIGTILE_EDITOR_IMAGE = pygame.image.load(f'tile_editor_pictures/bigtileEditorButton.png')
+TOGGLE_SUBTILES_IMAGE = pygame.image.load(f'tile_editor_pictures/toggleSubtilesButton.png')
+TOGGLE_COLLISIONS_IMAGE = pygame.image.load(f'tile_editor_pictures/toggleCollisionsButton.png')
+PRINT_IMAGE = pygame.image.load(f'tile_editor_pictures/printButton.png')
+LOAD_FROM_GAME_IMAGE = pygame.image.load(f'tile_editor_pictures/loadFromGameButton.png')
+LOAD_FULL_GAME_IMAGE = pygame.image.load(f'tile_editor_pictures/loadFullGameButton.png')
+LOAD_LEVEL_TILES_IMAGE = pygame.image.load(f'tile_editor_pictures/loadLevelTilesButton.png')
+INFO_IMAGE = pygame.image.load(f'tile_editor_pictures/infoButton.png')
+INFO_IMAGES = [pygame.image.load(f'tile_editor_pictures/infoCourseEditor.png'), pygame.image.load(f'tile_editor_pictures/infoTileEditor.png')]
+SUBTILE_USAGE_IMAGE = pygame.image.load(f'tile_editor_pictures/checkSubtileUsage.png')
+HEIGHT_CHANGE_IMAGE = pygame.image.load(f'tile_editor_pictures/levelHeightChangeButton.png')
+HORIZONTAL_SPAWN_IMAGE = pygame.image.load(f'tile_editor_pictures/horizontalSpawnButton.png')
+PENCIL_IMAGE = pygame.image.load(f'tile_editor_pictures/pencil.png')
+BUCKET_IMAGE = pygame.image.load(f'tile_editor_pictures/bucket.png')
+STAMP_IMAGE = pygame.image.load(f'tile_editor_pictures/stamp.png')
+
+#button instances
+sportTypeButtons = []
+sportDifficultyButtons = []
+tileInvButtons = []
+
+def sportTypeButtonMover(mode):
+    global sportTypeButtons
+    sportTypeButtons = []
+    sportTypeButtons.append(button.Button(560 - (80*mode), 45, TOBOGGAN_IMAGE, 2))
+    sportTypeButtons.append(button.Button(704 - (80*mode), 45, SLED_IMAGE, 2))
+    sportTypeButtons.append(button.Button(560 - (80*mode), 90, RAFT_IMAGE, 2))
+    sportTypeButtons.append(button.Button(704 - (80*mode), 90, KAYAK_IMAGE, 2))
+    sportTypeButtons.append(button.Button(560 - (80*mode), 135, BIKE_IMAGE, 2))
+    sportTypeButtons.append(button.Button(704 - (80*mode), 135, DIRTBOARD_IMAGE, 2))
+sportTypeButtonMover(0)
+
+sportDifficultyButtons.append(button.Button(550, 190, BEGINNER_IMAGE, 2))
+sportDifficultyButtons.append(button.Button(640, 190, INTERMEDIATE_IMAGE, 2))
+sportDifficultyButtons.append(button.Button(730, 190, EXPERT_IMAGE, 2))
+
+GRID_BUTTON = button.Button(710, 10, GRID_IMAGE, 1)
+SAVE_BUTTON = button.Button(750, 10, SAVE_IMAGE, 1)
+LOAD_BUTTON = button.Button(790, 10, LOAD_IMAGE, 1)
+EFFECTS_BUTTON = button.Button(658, 10, EFFECTS_IMAGE, 2)
+COURSE_EDITOR_BUTTON = button.Button(1000,400, COURSE_EDITOR_IMAGE, 1)
+TILE_EDITOR_BUTTON = button.Button(1150,400, TILE_EDITOR_IMAGE, 1)
+SUBTILE_EDITOR_BUTTON = button.Button(1000,550, SUBTILE_EDITOR_IMAGE, 1)
+BIGTILE_EDITOR_BUTTON = button.Button(1150,550, BIGTILE_EDITOR_IMAGE, 1)
+TOGGLE_SUBTILES_BUTTON = button.Button(300,500, TOGGLE_SUBTILES_IMAGE, 1)
+TOGGLE_COLLISIONS_BUTTON = button.Button(400,500, TOGGLE_COLLISIONS_IMAGE, 1)
+PRINT_BUTTON = button.Button(830, 10, PRINT_IMAGE, 1)
+LOAD_FROM_GAME_BUTTON = button.Button(830, 10, LOAD_FROM_GAME_IMAGE, 1)
+LOAD_FULL_GAME_BUTTON = button.Button(870, 10, LOAD_FULL_GAME_IMAGE, 1)
+LOAD_LEVEL_TILES_BUTTON = button.Button(910, 10, LOAD_LEVEL_TILES_IMAGE, 1)
+INFO_BUTTON = button.Button(1240, 10, INFO_IMAGE, 1)
+SUBTILE_USAGE_BUTTON = button.Button(870, 10, SUBTILE_USAGE_IMAGE, 1)
+HEIGHT_CHANGE_BUTTON = button.Button(950, 10, HEIGHT_CHANGE_IMAGE, 1)
+HORIZONTAL_SPAWN_BUTTON = button.Button(990, 10, HORIZONTAL_SPAWN_IMAGE, 1)
+PENCIL_BUTTON = button.Button(870, 50, PENCIL_IMAGE, 1)
+BUCKET_BUTTON = button.Button(910, 50, BUCKET_IMAGE, 1)
+STAMP_BUTTON = button.Button(950, 50, STAMP_IMAGE, 1)
+
+#buttons for the tile map
+def gridButtonMaker():
+    currentColumn = 0
+    currentRow = 0
+
+    for byte in allLevelTileCSVs[sportType][sportDifficulty]:
+        temp = currentRow * gridTileWidth + scroll
+        if temp >= -32 and temp <= screenHeight: # don't need to draw things off screen
+            SCREEN.blit(imageList[sportType][byte], (0 + currentColumn * gridTileWidth, 0 + currentRow * gridTileWidth + scroll))
+            if effectsOn:
+                SCREEN.blit(imageList[sportType+6][byte], (0 + currentColumn * gridTileWidth, 0 + currentRow * gridTileWidth + scroll))
+        currentColumn += 1
+        if currentColumn == 16:
+            currentColumn = 0
+            currentRow += 1
+
+def checkerer():
+    temp = (scroll%32)-32
+    layer = 0
+    thetangle = pygame.Surface((32, 32))
+    thetangle.set_alpha(100)
+    thetangle.fill((0,0,0))
+    while temp < screenHeight:
+        for i in range(16):
+            if (i + layer)%2 == 0:
+                SCREEN.blit(thetangle, (i*32, temp))
+        layer += 1
+        temp += 32
+
 
 #tilemap data storage (lists in lists, where list[sport][diff] = the correct data)
 for sport in range(6):
@@ -189,45 +239,6 @@ def tileImageStorer(): #PROBLEM, this could probably be more efficient if it onl
 
 imageList = tileImageStorer()
 
-#button instances
-sportTypeButtons = []
-sportDifficultyButtons = []
-tileInvButtons = []
-
-def sportTypeButtonMover(mode):
-    global sportTypeButtons
-    sportTypeButtons = []
-    sportTypeButtons.append(button.Button(560 - (80*mode), 45, TOBOGGAN_IMAGE, 2))
-    sportTypeButtons.append(button.Button(704 - (80*mode), 45, SLED_IMAGE, 2))
-    sportTypeButtons.append(button.Button(560 - (80*mode), 90, RAFT_IMAGE, 2))
-    sportTypeButtons.append(button.Button(704 - (80*mode), 90, KAYAK_IMAGE, 2))
-    sportTypeButtons.append(button.Button(560 - (80*mode), 135, BIKE_IMAGE, 2))
-    sportTypeButtons.append(button.Button(704 - (80*mode), 135, DIRTBOARD_IMAGE, 2))
-sportTypeButtonMover(0)
-
-sportDifficultyButtons.append(button.Button(550, 190, BEGINNER_IMAGE, 2))
-sportDifficultyButtons.append(button.Button(640, 190, INTERMEDIATE_IMAGE, 2))
-sportDifficultyButtons.append(button.Button(730, 190, EXPERT_IMAGE, 2))
-
-GRID_BUTTON = button.Button(710, 10, GRID_IMAGE, 1)
-SAVE_BUTTON = button.Button(750, 10, SAVE_IMAGE, 1)
-LOAD_BUTTON = button.Button(790, 10, LOAD_IMAGE, 1)
-EFFECTS_BUTTON = button.Button(658, 10, EFFECTS_IMAGE, 2)
-COURSE_EDITOR_BUTTON = button.Button(1000,400, COURSE_EDITOR_IMAGE, 1)
-TILE_EDITOR_BUTTON = button.Button(1150,400, TILE_EDITOR_IMAGE, 1)
-SUBTILE_EDITOR_BUTTON = button.Button(1000,550, SUBTILE_EDITOR_IMAGE, 1)
-BIGTILE_EDITOR_BUTTON = button.Button(1150,550, BIGTILE_EDITOR_IMAGE, 1)
-TOGGLE_SUBTILES_BUTTON = button.Button(300,500, TOGGLE_SUBTILES_IMAGE, 1)
-TOGGLE_COLLISIONS_BUTTON = button.Button(400,500, TOGGLE_COLLISIONS_IMAGE, 1)
-PRINT_BUTTON = button.Button(830, 10, PRINT_IMAGE, 1)
-LOAD_FROM_GAME_BUTTON = button.Button(830, 10, LOAD_FROM_GAME_IMAGE, 1)
-LOAD_FULL_GAME_BUTTON = button.Button(870, 10, LOAD_FULL_GAME_IMAGE, 1)
-LOAD_LEVEL_TILES_BUTTON = button.Button(910, 10, LOAD_LEVEL_TILES_IMAGE, 1)
-INFO_BUTTON = button.Button(1240, 10, INFO_IMAGE, 1)
-SUBTILE_USAGE_BUTTON = button.Button(870, 10, SUBTILE_USAGE_IMAGE, 1)
-
-
-
 #clickable tile buttons
 def buttonMaker():
     clickableTileButtonLists = []
@@ -252,19 +263,67 @@ CLICKY_TILES = buttonMaker()
 #setting up tiles in inventory
 tileInvPictures = [0] * 10
 
+
+##course editor funcs
 #load a new course
 def loadLevel(name, sportType, sportDifficulty):
-    with open(f"levels/modified levels/{name}.gbc", "rb") as file:
+    with open(f"levels/modified_levels/{name}.gbc", "rb") as file:
         levelOffset = BEARS_LEVEL_DATA_OFFSET_RANGES[sportType][sportDifficulty]
-        length = HORIZONTAL_LINE_VALUES[sportDifficulty] * 0x10
-        if sportType < 2 and sportDifficulty == 0:
-            length -= 0x10
+        length = sportHeights[sportType][sportDifficulty] * 0x10
         data = file.read()[levelOffset:levelOffset + length]
         liszt = []
         for byte in data:
             liszt.append(byte)
         allLevelTileCSVs[sportType][sportDifficulty] = liszt
 
+def paint(X, Y, tile, startTile):
+    try:
+        global sportType
+        global sportDifficulty
+        global allLevelTileCSVs
+        tileQueue = [[X, Y]]
+        allLevelTileCSVs[sportType][sportDifficulty][X + Y * 16] = tile
+        while tileQueue != []:
+            x = tileQueue[0][0]
+            y = tileQueue[0][1]
+            tileQueue = tileQueue[1:]
+            if x > 0 and allLevelTileCSVs[sportType][sportDifficulty][x-1+y*16] == startTile:
+                #paint(x-1, y, tile, startTile)
+                allLevelTileCSVs[sportType][sportDifficulty][x-1 + y * 16] = tile
+                tileQueue.append([x-1, y])
+            if x < 15 and allLevelTileCSVs[sportType][sportDifficulty][x+1+y*16] == startTile:
+                #paint(x+1, y, tile, startTile)
+                tileQueue.append([x+1, y])
+                allLevelTileCSVs[sportType][sportDifficulty][x+1 + y * 16] = tile
+            if y > 0 and allLevelTileCSVs[sportType][sportDifficulty][x+(y-1)*16] == startTile:
+                #paint(x, y-1, tile, startTile)
+                tileQueue.append([x, y-1])
+                allLevelTileCSVs[sportType][sportDifficulty][x + (y-1) * 16] = tile
+            if y < len(allLevelTileCSVs[sportType][sportDifficulty])//16 - 1 and allLevelTileCSVs[sportType][sportDifficulty][x+(y+1)*16] == startTile:
+                #paint(x, y+1, tile, startTile)
+                tileQueue.append([x, y+1])
+                allLevelTileCSVs[sportType][sportDifficulty][x + (y+1) * 16] = tile
+        return
+    except RecursionError:
+        return
+
+
+
+
+def stamp(X, Y, stamp):
+    global sportType
+    global sportDifficulty
+    global allLevelTileCSVs
+    height = min(len(allLevelTileCSVs[sportType][sportDifficulty])//16 - Y, len(stamp))
+    length = min(16 - X, len(stamp[0]))
+    for i in range(height):
+        for j in range(length):
+            allLevelTileCSVs[sportType][sportDifficulty][X+j+(Y+i)*16] = stamp[i][j]
+    return
+
+
+
+##tile editor funcs
 #loading in subtiles as images, for subtile mode
 def loadSubtileData(sport):
     global hexCodes
@@ -288,7 +347,7 @@ def loadSubtileData(sport):
         name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (say E for empty subtiles) (. to abort): ")
     if name != ".":
         try:
-            with open(f"levels/modified levels/{name}.gbc", 'rb') as file:
+            with open(f"levels/modified_levels/{name}.gbc", 'rb') as file:
                 byteLand = file.read()
                 check = input(f"Do you want to import this game's {CONST_SPORTS[sportType]} palette? (if no, don't enter anything): ")
                 if check != "":
@@ -330,6 +389,7 @@ def loadSubtileData(sport):
     print("No changes have been made.")
     return
 
+#saves tile editor data to a game
 def saveThineData(sport):
     global hexCodes
     global subtileGraphics
@@ -345,7 +405,7 @@ def saveThineData(sport):
     name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (. to abort): ")
     if name != ".":
         try:
-            with open(f"levels/modified levels/{name}.gbc", 'r+b') as file:
+            with open(f"levels/modified_levels/{name}.gbc", 'r+b') as file:
                 check = input("Do you want to save your palette to the file? (if no, don't enter anything): ")
                 if check != "":
                     extraOffsets = [[0x4A98, 0, 0, 0x4AA5], [0x8AB0, 0, 0, 0x8ABD], [0, 0, 0xCA3C, 0xCA45],
@@ -413,6 +473,7 @@ def saveThineData(sport):
     print("No changes have been made.")
     return
 
+#makes printed tiles from bmp into png
 def pngify(name):
     if not os.path.exists(f"tiles/{name}"):
         os.makedirs(f"tiles/{name}")
@@ -428,7 +489,7 @@ def pngify(name):
         Image.open(bitmap).save(f"tiles/{name}_effects/tile{count}.png")
         count += 1
 
-
+#draws all the tiny top right subtiles in tile mode
 def wowowo():
     # testing drawing selectable subtiles
     for k in range(32):
@@ -449,6 +510,7 @@ def wowowo():
                                      rectangle)  # gotta use paletteSelected for this because subtiles aren't connected to one palette, rather a palette is assigned upon bigtile construction
 
 #todo probably use this method more often? everything is so janky and spaghettish
+#kind of a general tile editor updater
 def infoUpdater():
     global subtileSelected
     global paletteSelected
@@ -478,6 +540,7 @@ def infoUpdater():
     #print("updater", currentSubtileStackInfo)
     return
 
+#making the font
 pygame.font.init()
 thefont = pygame.font.SysFont("Times New Roman", 32)
 
@@ -485,12 +548,11 @@ thefont = pygame.font.SysFont("Times New Roman", 32)
 running = True
 while running:
 
-    #frames pames sames (and title)
-
+    #fps (and title)
     clock.tick()
     pygame.display.set_caption(f"bears tile editor: {clock.get_fps()} fps")
 
-    #bg colour
+    #bg colour (blue!)
     SCREEN.fill((36, 45, 104))
 
     #mouse pos tracker
@@ -498,6 +560,7 @@ while running:
     mouseX = (mousePos[0])
     mouseY = (mousePos[1])
 
+    #mode changing buttons
     if COURSE_EDITOR_BUTTON.draw(SCREEN):
         programMode = 0
         sportTypeButtonMover(programMode)
@@ -524,7 +587,7 @@ while running:
 
 
     #
-    # COURSE EDITOR MODE
+    # COURSE EDITOR MODE (for editing course layout)
     #
     elif programMode == 0:
 
@@ -583,6 +646,7 @@ while running:
                 # if event.key == pygame.K_RSHIFT or event.key == pygame.K_LSHIFT:
                 # scrollSpeed = 1
 
+            #scroll wheel
             if event.type == pygame.MOUSEWHEEL:
                 if event.y == 1:
                     scroll += 256
@@ -598,9 +662,10 @@ while running:
         if scroll > 0:
             scroll = 0
 
-        if scroll < -(HORIZONTAL_LINE_VALUES[sportDifficulty]) * (gridTileWidth) + 600: #this is prob very inefficient, should change the value every time diff/grid is changed and store it somrwhere future me pleeeeease :)
-            #print(-(HORIZONTAL_LINE_VALUES[sportDifficulty]), gridTileWidth)
-            scroll = -(HORIZONTAL_LINE_VALUES[sportDifficulty]) * (gridTileWidth) + 600
+        #limit on the scroll
+        if scroll < -(sportHeights[sportType][sportDifficulty]) * (gridTileWidth) + 600: #this is prob very inefficient, should change the value every time diff/grid is changed and store it somrwhere future me pleeeeease :)
+            #print(-(sportHeights[sportType][sportDifficulty]), gridTileWidth)
+            scroll = -(sportHeights[sportType][sportDifficulty]) * (gridTileWidth) + 600
 
         #draw sport buttons, sport button memory, & actions
         sportCount = 0
@@ -620,10 +685,7 @@ while running:
         for difficultyCount, difficultyButton in enumerate(sportDifficultyButtons):
             if difficultyButton.draw(SCREEN):
                 sportDifficulty = difficultyCount
-                if sportDifficulty == 0 and sportType == 0 or sportDifficulty == 0 and sportType == 1:
-                    horizontalLineCount = 0x21A
-                else:
-                    horizontalLineCount = HORIZONTAL_LINE_VALUES[difficultyCount]
+                horizontalLineCount = sportHeights[sportType][difficultyCount]
 
                 imageList = tileImageStorer()
 
@@ -648,6 +710,19 @@ while running:
         #draws grid tile images to screen
         gridButtonMaker()
 
+        #drawing the height line
+        lineHeight = sportHeights[sportType][sportDifficulty]*32 + scroll*1 + 2
+        if lineHeight > 0 and lineHeight < 720:
+            pygame.draw.line(SCREEN, (255, 0, 0), (0, lineHeight), (511, lineHeight), 5)
+
+        #and the spawn rectangle
+        spawnRect = pygame.rect = (bearsCourseHorizontalSpawns[sportType][sportDifficulty] * 2 - 16, sportHeights[sportType][sportDifficulty]*32 + scroll*1 - 64, 32, 32)
+        pygame.draw.rect(SCREEN, (255, 0, 0), spawnRect, 2)
+
+        #camera test
+        cameraRect = pygame.rect = (max(min(bearsCourseHorizontalSpawns[sportType][sportDifficulty] - 0x50, 0x60), 0) * 2 + 2, lineHeight - 0x120, 0x140, 0x120)
+        pygame.draw.rect(SCREEN, (255, 200, 200), cameraRect, 2)
+
         # toggles the grid spacings (and draws grid button)
         if GRID_BUTTON.slowDraw(SCREEN):
             checkerenate = not checkerenate
@@ -662,12 +737,15 @@ while running:
 
         # saving features (and draw save)
         if SAVE_BUTTON.draw(SCREEN):
-            CSVList = allLevelTileCSVs[sportType][sportDifficulty]
+            CSVList = allLevelTileCSVs[sportType][sportDifficulty][0:0x10*sportHeights[sportType][sportDifficulty]]
 
             filename = input("Name your file (. to skip): ") #CSV maker
             if filename != ".":
-                with open(f"levels/modified levels/{filename}.csv", "w", newline="") as file:
+                if not os.path.exists(f"levels/modified_levels"):
+                    os.makedirs(f"levels/modified_levels")
+                with open(f"levels/modified_levels/{filename}.csv", "w", newline="") as file:
                     writenator = csv.writer(file, delimiter=",")
+                    writenator.writerow([sportHeights[sportType][sportDifficulty], bearsCourseHorizontalSpawns[sportType][sportDifficulty]])
                     for i in range(0, len(CSVList), 16):
                         writenator.writerow(CSVList[i:i + 16])
                     print("File saved.")
@@ -675,12 +753,17 @@ while running:
             bearsname = input("enter the name of the bears file (in levels/modified_levels/) to which the data should be saved here (.gbc file format assumed, so don't type it)? (. to skip): ") #GBC editor
             if bearsname != ".":
                 try:
-                    with open(f"levels/modified levels/{bearsname}.gbc", "r+b") as file:
+                    with open(f"levels/modified_levels/{bearsname}.gbc", "r+b") as file:
                         file.seek(BEARS_LEVEL_DATA_OFFSET_RANGES[sportType][sportDifficulty])
                         CSVByteArray = b''
                         for num in CSVList:
                             CSVByteArray += num.to_bytes(1, "little")
                         file.write(CSVByteArray)
+                        #new height
+                        file.seek(BEARS_COURSE_HEIGHT_OFFSETS[sportType] + sportDifficulty)
+                        file.write(bearsCourseHorizontalSpawns[sportType][sportDifficulty].to_bytes())
+                        file.seek(BEARS_COURSE_HEIGHT_OFFSETS[sportType] + sportDifficulty + 3)
+                        file.write(max(min(bearsCourseHorizontalSpawns[sportType][sportDifficulty] - 0x50, 0x60), 0).to_bytes())
                         file.close()
                         print("Data saved.")
                 except FileNotFoundError:
@@ -691,9 +774,17 @@ while running:
             filename = input("enter the name of the CSV file (in levels/modified_levels/) here (.csv file format assumed, so don't type it) (. to abort): ")
             if filename != ".":
                 try:
-                    with open(f"levels/modified levels/{filename}.csv", "r") as file:
-                        liszt = [int(byte) for byte in re.split(",|\n", file.read())[:-1]] #the -1 takes off the last \n of a csv file
-                        allLevelTileCSVs[int(input(f"input sport here (toboggan = 0, sled = 1, ..., dirtboard = 6. the sport currently selected is {sportType}):"))][int(input(f"input difficulty here (beginner = 0, intermediate = 1, expert = 2. the difficulty currently selected is {sportDifficulty})): "))] = liszt
+                    with open(f"levels/modified_levels/{filename}.csv", "r") as file:
+                        tempArrrgh = re.split(",|\n", file.read())
+                        header = tempArrrgh[0:2]
+                        liszt = [int(byte) for byte in tempArrrgh[2:-1]] #the -1 takes off the last \n of a csv file
+                        tempSport = int(input(f"input sport here (toboggan = 0, sled = 1, ..., dirtboard = 6. the sport currently selected is {sportType}):"))
+                        tempDiff = int(input(f"input difficulty here (beginner = 0, intermediate = 1, expert = 2. the difficulty currently selected is {sportDifficulty})): "))
+                        courseSize = len(liszt)
+                        if courseSize < sportHeights[tempSport][tempDiff]*0x10:
+                            liszt += ([0xFF] * ((sportHeights[tempSport][tempDiff] * 0x10) - courseSize))
+                        allLevelTileCSVs[tempSport][tempDiff] = liszt
+                        sportHeights[tempSport][tempDiff] = courseSize//0x10
                 except FileNotFoundError:
                     print("File not found.")
 
@@ -738,21 +829,74 @@ while running:
                 else:
                     print(f"couldn't find one of the two folders ({name} or {name}_effects) in the tiles folder")
 
+        if HEIGHT_CHANGE_BUTTON.draw(SCREEN):
+            sportType = int(input(f"input sport here (toboggan = 0, sled = 1, ..., dirtboard = 6. the sport currently selected is {sportType}): "))
+            sportDifficulty = int(input(f"input difficulty here (beginner = 0, intermediate = 1, expert = 2. the difficulty currently selected is {sportDifficulty})): "))
+            tempHeight = int(input(f"Input the new height you want (the old one was {sportHeights[sportType][sportDifficulty]}): "))
+            if tempHeight < 1 or tempHeight > ORIGINAL_SPORT_HEIGHTS[sportType][sportDifficulty]:
+                print("The height is either too small or too big (and would overwrite other code.")
+            else:
+                sportHeights[sportType][sportDifficulty] = tempHeight
+            #make var to hold, also compare to original_heights, and add that in the last input message
+
+
         if INFO_BUTTON.draw(SCREEN):
             infoMode = not infoMode
             pygame.time.wait(200)
+
+        if HORIZONTAL_SPAWN_BUTTON.draw(SCREEN):
+            tempHoriz = input(f'Input the new horizontal spawn location you want (the current horizontal spawn location is {bearsCourseHorizontalSpawns[sportType][sportDifficulty]}, or {hex(bearsCourseHorizontalSpawns[sportType][sportDifficulty])}): ')
+            if tempHoriz[0:2].lower() == "0x":
+                tempHoriz = int(tempHoriz, 16)
+            else:
+                tempHoriz = int(tempHoriz)
+            if tempHoriz >= 0x8 and tempHoriz <= 0xF8:
+                bearsCourseHorizontalSpawns[sportType][sportDifficulty] = tempHoriz
+            else:
+                print("Out of bounds (keep it between 8 and 248")
 
         #mouse tracker (adjusted for tile grid clicking)
         mouseX = mouseX // (gridTileWidth)
         mouseY = (mouseY - scroll) // (gridTileWidth)
 
         if mouseX < VERTICAL_LINE_COUNT and mouseX >= 0 and mouseY < horizontalLineCount:
-            if pygame.mouse.get_pressed()[0] == 1 and allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] != chosenTile:
-                allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] = chosenTile
+            if pygame.mouse.get_pressed()[0] == 1:
+                if drawMode == 0 and allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] != chosenTile:
+                    allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] = chosenTile
+                elif drawMode == 1 and allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] != chosenTile:
+                    paint(mouseX, mouseY, chosenTile, allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16])
+                elif drawMode == 2:
+                    stamp(mouseX, mouseY, stampArr)
                 #print(mouseX)
-            elif pygame.mouse.get_pressed()[2] == 1 and allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] != chosenTile:
+            elif pygame.mouse.get_pressed()[1] == 1 and allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] != chosenTile:
                 chosenTile = allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16]
                 tileInvPictures[inventoryIndex] = chosenTile
+            elif pygame.mouse.get_pressed()[2] == 1:
+                if selectOrigCoords == []:
+                    #selecting = True
+                    selectOrigCoords = [mouseX, mouseY]
+                selectNewCoords = [mouseX, mouseY]
+                selectangle = pygame.rect = (min(selectOrigCoords[0], selectNewCoords[0]) * 32, min(selectOrigCoords[1], selectNewCoords[1]) * 32 + scroll, abs(selectOrigCoords[0] - selectNewCoords[0]) * 32 + 32, abs(selectOrigCoords[1] - selectNewCoords[1]) * 32 + 32)
+                pygame.draw.rect(SCREEN, (100, 255, 100), selectangle, 2)
+            elif pygame.mouse.get_pressed()[2] == 0:
+                if selectOrigCoords != []:
+                    stampArr = []
+                    horizLen = abs(selectOrigCoords[0] - selectNewCoords[0]) + 1
+                    topLeft = [min(selectOrigCoords[0], selectNewCoords[0]), min(selectOrigCoords[1], selectNewCoords[1])]
+                    for i in range(abs(selectOrigCoords[1] - selectNewCoords[1]) + 1):
+                        stampArr.append(allLevelTileCSVs[sportType][sportDifficulty][topLeft[0]+(topLeft[1]+i)*16:topLeft[0]+horizLen+(topLeft[1]+i)*16])
+                selectOrigCoords = []
+
+        #buttons for drawing mode
+        if PENCIL_BUTTON.draw(SCREEN):
+            drawMode = 0
+        if BUCKET_BUTTON.draw(SCREEN):
+            drawMode = 1
+        if STAMP_BUTTON.draw(SCREEN):
+            drawMode = 2
+        #and highlight selected
+        modangle = pygame.rect = (870 + drawMode*40, 50, 32, 32)
+        pygame.draw.rect(SCREEN, (255, 0, 0), modangle, 1)
 
         for i in range(10): #draws inv items to the screen
             tempPic = pygame.transform.scale(imageList[sportType+(effectsOn*6)][tileInvPictures[i]], (16, 16)) #this seems bad, maybe use 2 lists, one which stores numbers and another which stores pictures?
