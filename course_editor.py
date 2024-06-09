@@ -267,14 +267,22 @@ tileInvPictures = [0] * 10
 ##course editor funcs
 #load a new course
 def loadLevel(name, sportType, sportDifficulty):
+    global allLevelTileCSVs
+    global sportHeights
+    global bearsCourseHorizontalSpawns
     with open(f"levels/modified_levels/{name}.gbc", "rb") as file:
+        tempAllData = file.read()
         levelOffset = BEARS_LEVEL_DATA_OFFSET_RANGES[sportType][sportDifficulty]
         length = sportHeights[sportType][sportDifficulty] * 0x10
-        data = file.read()[levelOffset:levelOffset + length]
+        data = tempAllData[levelOffset:levelOffset + length]
+        chunkStart = (0xA + sportType*3 + sportDifficulty) * 0x4000
+        sportHeights[sportType][sportDifficulty] = int.from_bytes(tempAllData[chunkStart+2:chunkStart+4], "little")
+        bearsCourseHorizontalSpawns[sportType][sportDifficulty] = tempAllData[BEARS_COURSE_HEIGHT_OFFSETS[sportType]]
         liszt = []
         for byte in data:
             liszt.append(byte)
         allLevelTileCSVs[sportType][sportDifficulty] = liszt
+        liszt += ([0xFF] * ((sportHeights[sportType][sportDifficulty] * 0x10) - len(liszt)))
 
 def paint(X, Y, tile, startTile):
     try:
@@ -777,16 +785,22 @@ while running:
                     with open(f"levels/modified_levels/{filename}.csv", "r") as file:
                         tempArrrgh = re.split(",|\n", file.read())
                         header = tempArrrgh[0:2]
-                        liszt = [int(byte) for byte in tempArrrgh[2:-1]] #the -1 takes off the last \n of a csv file
+                        liszt = [int(byte) for byte in tempArrrgh[16:-1]] #the -1 takes off the last \n of a csv file, and the 16 is to remove the empty header junk
                         tempSport = int(input(f"input sport here (toboggan = 0, sled = 1, ..., dirtboard = 6. the sport currently selected is {sportType}):"))
                         tempDiff = int(input(f"input difficulty here (beginner = 0, intermediate = 1, expert = 2. the difficulty currently selected is {sportDifficulty})): "))
                         courseSize = len(liszt)
                         if courseSize < sportHeights[tempSport][tempDiff]*0x10:
-                            liszt += ([0xFF] * ((sportHeights[tempSport][tempDiff] * 0x10) - courseSize))
+                            liszt += ([0xFF] * ((sportHeights[tempSport][tempDiff] * 0x10) - courseSize)) #if the height isn't the max, this fills the rest with sawdust (0xFF tiles cuz why not)
                         allLevelTileCSVs[tempSport][tempDiff] = liszt
                         sportHeights[tempSport][tempDiff] = courseSize//0x10
+                        sportType = tempSport
+                        sportDifficulty = tempDiff
                 except FileNotFoundError:
                     print("File not found.")
+                except ValueError:
+                    print("bad sport or diff :(")
+                except IndexError:
+                    print("sport/diff num out of bounds :(")
 
         # effect vision toggle
         if EFFECTS_BUTTON.draw(SCREEN):
@@ -830,15 +844,24 @@ while running:
                     print(f"couldn't find one of the two folders ({name} or {name}_effects) in the tiles folder")
 
         if HEIGHT_CHANGE_BUTTON.draw(SCREEN):
-            sportType = int(input(f"input sport here (toboggan = 0, sled = 1, ..., dirtboard = 6. the sport currently selected is {sportType}): "))
-            sportDifficulty = int(input(f"input difficulty here (beginner = 0, intermediate = 1, expert = 2. the difficulty currently selected is {sportDifficulty})): "))
-            tempHeight = int(input(f"Input the new height you want (the old one was {sportHeights[sportType][sportDifficulty]}): "))
-            if tempHeight < 1 or tempHeight > ORIGINAL_SPORT_HEIGHTS[sportType][sportDifficulty]:
-                print("The height is either too small or too big (and would overwrite other code.")
-            else:
-                sportHeights[sportType][sportDifficulty] = tempHeight
-            #make var to hold, also compare to original_heights, and add that in the last input message
-
+            try:
+                tempSport = int(input(f"input sport here (toboggan = 0, sled = 1, ..., dirtboard = 6. the sport currently selected is {sportType}): "))
+                tempDiff = int(input(f"input difficulty here (beginner = 0, intermediate = 1, expert = 2. the difficulty currently selected is {sportDifficulty})): "))
+                if tempSport < 0 or tempSport > 6 or tempDiff < 0 or tempDiff > 6:
+                    raise IndexError
+                else:
+                    sportType = tempSport
+                    sportDifficulty = tempDiff
+                    tempHeight = int(input(f"Input the new height you want (the old one was {sportHeights[sportType][sportDifficulty]}): "))
+                    if tempHeight < 1 or tempHeight > ORIGINAL_SPORT_HEIGHTS[sportType][sportDifficulty]:
+                        print("The height is either too small or too big (and would overwrite other code.")
+                    else:
+                        sportHeights[sportType][sportDifficulty] = tempHeight
+                    #make var to hold, also compare to original_heights, and add that in the last input message
+            except ValueError:
+                print("bad sport or diff :(")
+            except IndexError:
+                print("sport/diff num out of bounds :(")
 
         if INFO_BUTTON.draw(SCREEN):
             infoMode = not infoMode
