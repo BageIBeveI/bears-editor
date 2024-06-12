@@ -1,12 +1,21 @@
 def main():
-    delimiter = input("What delimiter should be used for separating note inputs? (e.g. a comma or a space, for C1,C2, "
+    delimiter = input("What delimiter should be used for separating note inputs? (e.g. a comma or a space, for C1,C2,"
                       "C3 or C1 C2 C3): ")
 
-    frames_per_quarter_note = int(input(
-        "\nPlease enter the # of frames that should represent one quarter note (divide 3600 by your BPM\n"
-        "in quarter notes, and take the nearest integer.) If you want n-tuplets, you'll want to make sure\n"
-        "the integer you're typing is divisible by n. if it isn't the program won't crash, but things will\n"
-        "prob stop syncing up because of the rounding. (e.g. for 60bpm, frames per quarter = 3600 / 60 = 60): "))
+    print(f"'{delimiter}' is the delimeter. ")
+
+    stopper = True
+    while stopper:
+        try:
+            frames_per_quarter_note = int(input(
+            "\nPlease enter the # of frames that should represent one quarter note (divide 3600 by your BPM\n"
+            "in quarter notes, and take the nearest integer.) If you want n-tuplets, you'll want to make sure\n"
+            "the integer you're typing is divisible by n. if it isn't the program won't crash, but things will\n"
+            "prob stop syncing up because of the rounding. (e.g. for 60bpm, frames per quarter = 3600 / 60 = 60): "))
+            stopper = False
+        except Exception:
+            print("Invalid input.")
+
 
     # since i don't want to make 2 dictionaries, i'll just subtract 12 from anything for channels 1 and 2 (since they'd
     # be more like "C2": 24
@@ -120,7 +129,7 @@ def main():
 
     while True:
         print_menu()
-        user_choice = input("Make your choice  .....")
+        user_choice = input("Make your choice  ..... : ").upper()
         if user_choice == "1":
             music_adder(notes, note_lengths, delimiter)
         elif user_choice == "2":
@@ -128,8 +137,8 @@ def main():
         elif user_choice == "3":
             for i in range(4):
                 print(f"\n  Channel {i + 1}:")
-                print("Notes:", notes[i])
-                print("Note Lengths:", note_lengths[i])
+                print("Notes: ", notes[i])
+                print("Note Lengths: ", note_lengths[i])
         elif user_choice == "4":
             file_saver(notes, note_lengths)
         elif user_choice == "5":
@@ -137,7 +146,7 @@ def main():
         elif user_choice == "6":
             frames_per_quarter_note = file_loader(notes, note_lengths)
         elif user_choice == "Q":
-            if input("You sure? Y to quit") == "Y":
+            if input("Are you sure? Y to quit: ").upper() == "Y":
                 exit()
 
 
@@ -153,99 +162,170 @@ def print_menu():
 
 
 def music_adder(notes, note_lengths, delimiter):
-    channel = int(input("\nPlease choose a channel (1, 2, 3, 4).")) - 1
+    stopper = True
+    while stopper:
+        try:
+            channel = int(input("\nPlease choose a channel (0, 1, 2, 3): "))
+            if channel < 0 or channel > 3:
+                raise ValueError
+            stopper = False
+        except Exception:
+            print("Invalid input.")
 
-    #idk why i only have error handling here, but whatevah
-    try:
-        starting = int(input("Notes: At which index do you want to start?"))
-    except ValueError:
-        print("Bad!")
-        return
+    stopper = True
+    while stopper:
+        try:
+            starting = int(input("Notes: At which index do you want to start? "))
+            if starting < 0 or starting > len(notes[channel]):
+                raise IndexError
+            stopper = False
+        except IndexError:
+            print(f"Out of bounds. Channel {channel} has {len(notes[channel])} notes.")
+        except Exception:
+            print("Invalid input.")
 
     #this just takes the array and some starting index, then saves left + new + right
-    notes[channel] = notes[channel][:starting] + input(
-        "\nFOR CHANNELS 1 2 AND 3:\n"
+    inputVar = [note.upper() for note in (input(
+        "\nFOR CHANNELS 0 1 AND 2:\n"
         "please enter the notes, separated by your delimiter (e.g. anything from C2 to C9 (or C1 to "
         "C8 in channel 3), like C2 D#3 F5)\n"
         "Use # for accidentals. (no rests yet) \n\nFOR CHANNEL 4: write H B S C (for drum/water/bike/puddle sfx) as "
         "many times as needed. once i figure out how to get more stuff out\nof the noise channel, more will come, but "
         "for now, H is hi-hat ish, B is beep-ish?, S is snare-y, and C can be used as a very weak splash cymbal\n>"
-         ).split(delimiter) + notes[channel][starting:]
+         ).split(delimiter))]
 
-    try:
-        starting = int(input("\nNote lengths: At which index do you want to start?"))
-    except ValueError:
-        print("Bad!")
-        return
-    note_lengths[channel] = note_lengths[channel][:starting] + input("Now enter the note lengths in terms of quarter "
-                                                                     "notes, (e.g. whole = 4,\ndot half = 3, quarter = "
-                                                                     "1, eighth = 0.5, triplet on a quarter = 0.33)\n"
-                                                                     "(and same #of inputs as last time.)"
-                                                                     ).split(delimiter) + note_lengths[channel][
-                                                                                          starting:]
+    if inputVar != [""]:
+        notes[channel] = notes[channel][:starting] + inputVar + notes[channel][starting:]
+
+    stopper = True
+    while stopper:
+        try:
+            starting = int(input("\nNote lengths: At which index do you want to start? "))
+            if starting < 0 or starting > len(note_lengths[channel]):
+                raise IndexError
+            stopper = False
+        except IndexError:
+            print(f"Out of bounds. Channel {channel} has {len(notes[channel])} notes.")
+        except Exception:
+            print("Invalid input.")
+
+        inputVar = input("Now enter the note lengths in terms of quarter "
+            "notes, (e.g. whole = 4,\ndot half = 3, quarter = "
+            "1, eighth = 0.5, triplet on a quarter = 0.33)\n"
+            "(and same #of inputs as last time.): "
+            ).split(delimiter)
+        if inputVar != [""]:
+            note_lengths[channel] = note_lengths[channel][:starting] + inputVar + note_lengths[channel][starting:]
 
     #quick check to make sure there are as many notes as there are lengths, can be fixed via add/delete
     if len(notes[channel]) != len(note_lengths[channel]):
-        input(f"\nWarning: #of notes ({len(notes[channel])}) != #of note_lengths ({len(note_lengths[channel])})")
+        input(f"\nWarning: #of notes ({len(notes[channel])}) != #of note_lengths ({len(note_lengths[channel])}) (enter to continue) ")
 
-    print("\nNotes:", notes[channel])
-    print("note_lengths:", note_lengths[channel])
+    print("\nNotes: ", notes[channel])
+    print("note_lengths: ", note_lengths[channel])
     return
+
+def deleterWithErrorHandling(noteser, lengthser, notes, note_lengths, channel):
+    if noteser:
+        print(f"{len(notes[channel])} notes: ", notes[channel])
+    if lengthser:
+        print(f"{len(note_lengths[channel])} lengths: ", note_lengths[channel])
+    mus_index = input("\nWhich index do you want to delete (starts with 0)? (-1 to exit): ")
+    while not mus_index.isnumeric() or int(mus_index) < 0 or (int(mus_index) >= len(notes[channel]) and noteser == True) or (int(mus_index) >= len(note_lengths[channel]) and lengthser == True):
+        if mus_index == "-1":
+            return -1
+        print("Invalid input (either not a number, or out of bounds. There are ", end="")
+        if noteser:
+            print(f"{len(notes[channel])} notes", end="")
+            if lengthser:
+                print(f"and {len(note_lengths[channel])} note lengths.) ", end="")
+            else:
+                print(f".")
+        else:
+            print(f"{len(note_lengths[channel])} note lengths.)")
+        mus_index = input("\nWhich index do you want to delete (starts with 0)? (-1 to exit): ")
+    return int(mus_index)
 
 
 def music_deleter(notes, note_lengths):
     #just loops and keeps asking the user to delete some note/length until they're done
 
-    channel = int(input("Which channel do you want to delete from (1 2 3 4)? ")) - 1
-    mus_index = 0
-    # maybe ask if we want to delete from notes and note_lengths at once?
-    print(notes[channel])
-    mus_index = int(input("\nWhich index do you want to delete? (-1 to exit): "))
-    while mus_index != -1:
-        notes[channel].pop(mus_index)
-        print(notes[channel])
-        mus_index = int(input("\nNext: (-1 to exit) "))
+    stopper = True
+    while stopper:
+        try:
+            channel = int(input("Which channel do you want to delete from (0, 1, 2, 3)? "))
+            if channel < 0 or channel > 3:
+                raise ValueError
+            stopper = False
+        except Exception:
+            print("Invalid input.")
 
-    print(note_lengths[channel])
-    mus_index = int(input("\nWhich index do you want to delete? (-1 to exit): "))
-    while mus_index != -1:
-        note_lengths[channel].pop(mus_index)
-        print(note_lengths[channel])
-        mus_index = int(input("\nNext: (-1 to exit) "))
+    mus_index = 0
+
+
+    if input("Do you want to delete from the notes and lengths at the same time? Y for yes: ").upper() == "Y":
+        mus_index = deleterWithErrorHandling(True, True, notes, note_lengths, channel)
+        while mus_index != -1:
+            notes[channel].pop(mus_index)
+            note_lengths[channel].pop(mus_index)
+            if len(notes) == 0 or len(note_lengths) == 0:
+                print("Notes or lengths emptied!")
+                break
+            mus_index = deleterWithErrorHandling(True, True, notes, note_lengths, channel)
+    else:
+        mus_index = deleterWithErrorHandling(True, False, notes, note_lengths, channel)
+        while mus_index != -1:
+            notes[channel].pop(mus_index)
+            if len(notes) == 0:
+                print("Emptied!")
+                break
+            mus_index = deleterWithErrorHandling(True, False, notes, note_lengths, channel)
+
+        mus_index = deleterWithErrorHandling(False, True, notes, note_lengths, channel)
+        while mus_index != -1:
+            note_lengths[channel].pop(mus_index)
+            if len(notes) == 0:
+                print("Emptied!")
+                break
+            mus_index = deleterWithErrorHandling(False, True, notes, note_lengths, channel)
 
     if len(notes[channel]) != len(note_lengths[channel]):
         input(f"\nWarning: #of notes ({len(notes[channel])}) != #of note_lengths ({len(note_lengths[channel])})")
     print("\nFinal data:")
-    print("Notes:", notes[channel])
-    print("note_lengths:", note_lengths[channel])
+    print("Notes: ", notes[channel])
+    print("note_lengths: ", note_lengths[channel])
 
 
 def file_saver(notes, note_lengths):
-    name = input('Enter a filename (leave empty to skip):')
+    print("Make sure your notes and lengths are all allowed values before saving! If you want to be safe, save this to a CSV file first.")
+    name = input("Enter a filename (in music_csv/) (.csv file format assumed, so don't type it) (leave empty to skip): ")
     if name != "":
-        with open(f"music_csv/{name}.csv", "w") as file:
-            for channel in range(0, 4):
-                try:
-                    file.write(notes[channel][0])
-                except IndexError:
-                    file.write("\n\n")
-                    continue
-                for note in notes[channel][1:]:
-                    file.write(f",{note}")
+        try:
+            with open(f"music_csv/{name}.csv", "w") as file:
+                for channel in range(0, 4):
+                    try:
+                        file.write(notes[channel][0])
+                    except IndexError:
+                        file.write("\n\n")
+                        continue
+                    for note in notes[channel][1:]:
+                        file.write(f",{note}")
 
-                file.write("\n")
-
-                try:
-                    file.write(note_lengths[channel][0])
-                except IndexError:
                     file.write("\n")
-                    continue
-                for note_length in note_lengths[channel][1:]:
-                    file.write(f",{note_length}")
 
-                file.write("\n")
+                    try:
+                        file.write(note_lengths[channel][0])
+                    except IndexError:
+                        file.write("\n")
+                        continue
+                    for note_length in note_lengths[channel][1:]:
+                        file.write(f",{note_length}")
 
-            file.write("end")
+                    file.write("\n")
+
+                file.write("end")
+        except Exception:
+            print("File not found.")
         print("Save successful.")
     return
 
@@ -267,7 +347,14 @@ def game_writer(notes, note_lengths, P2B, FPQ):
         "7": [0x7DEF2, 0x2F6]}
 
     # ================
-    loopin = int(input("Do you want the song to loop? (0 no, 1 yes)"))
+    stopper = True
+    while stopper:
+        loopin = input("Do you want the song to loop? (0 no, 1 yes): ")
+        if loopin == "0" or loopin == "1":
+            stopper = False
+        else:
+            print("Invalid input.")
+    loopin = int(loopin)
 
     #big_list = []
     offset_sum = 8
@@ -282,59 +369,73 @@ def game_writer(notes, note_lengths, P2B, FPQ):
         offset_sum += (min(len(notes[i]), len(note_lengths[i])) + loopin) * 5
         temp_bytes += offset_sum.to_bytes(2, "little")
 
-    name = input('Enter a game to save the data to (leave empty to skip):')
-    if name != "":
-        song_ID = input("Which song ID?")
-        gamefile = open(f"levels/modified levels/{name}.gbc", "r+b")
+    try:
+        name = input("Enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (leave empty to skip): ")
+        if name != "":
+            try:
+                gamefile = open(f"levels/modified_levels/{name}.gbc", "r+b")
+            except Exception:
+                print("File not found.")
+                return
+            song_ID = input("Which song ID? (0 for intro, 1 for menu... etc for trick, wipeout, finish line, scoreboard, podium finish, course intro): ")
 
-        for channel in range(4):
-            transpose = int(
-                input(f"Transpose channel {channel}? (if not, enter 0. otherwise, enter some integer of semitones)"))
 
-            relative_offset = 0
+            for channel in range(4):
+                stopper = True
+                while stopper:
+                    try:
+                        transpose = int(input(f"Transpose channel {channel}? (if not, enter 0. otherwise, enter some integer of semitones): "))
+                        stopper = False
+                    except Exception:
+                        print("Not an integer!")
 
-            # just storing these to save a bit o time
-            curr_note_channel = notes[channel]
-            curr_note_len_channel = note_lengths[channel]
+                relative_offset = 0
 
-            length = min(len(curr_note_channel), len(curr_note_len_channel))
-            for i in range(length):
-                # the first offset is 0, and the next one is 0 + (length in quarter notes * frames per quarter note)
-                temp_bytes += relative_offset.to_bytes(2, "little")
-                relative_offset += round(float(curr_note_len_channel[i]) * FPQ)
+                # just storing these to save a bit o time
+                curr_note_channel = notes[channel]
+                curr_note_len_channel = note_lengths[channel]
 
-                # take the current note, convert it to a number (the byte as an integer) (via the dict), add whatever
-                # transposition is needed, then convert to a byte and add it to the music file
-                if channel in (2, 3):
-                    temp_bytes += (P2B[curr_note_channel[i].upper()] + transpose).to_bytes(1)
-                # this one's different because the big dictionary maps pitches too low for these channels (it works fine for
-                # bass, but here, it needs to go down an octave)
-                else:
-                    temp_bytes += (P2B[curr_note_channel[i].upper()] + transpose - 12).to_bytes(1)
+                length = min(len(curr_note_channel), len(curr_note_len_channel))
+                for i in range(length):
+                    # the first offset is 0, and the next one is 0 + (length in quarter notes * frames per quarter note)
+                    temp_bytes += relative_offset.to_bytes(2, "little")
+                    relative_offset += round(float(curr_note_len_channel[i]) * FPQ)
 
-                #not changeable for now, since idk what 64 does, and effects have different... effects depending on channel
-                temp_bytes += b'\x64\x30'
+                    # take the current note, convert it to a number (the byte as an integer) (via the dict), add whatever
+                    # transposition is needed, then convert to a byte and add it to the music file
+                    if channel in (2, 3):
+                        temp_bytes += (P2B[curr_note_channel[i].upper()] + transpose).to_bytes(1)
+                    # this one's different because the big dictionary maps pitches too low for these channels (it works fine for
+                    # bass, but here, it needs to go down an octave)
+                    else:
+                        temp_bytes += (P2B[curr_note_channel[i].upper()] + transpose - 12).to_bytes(1)
 
-            #the bears code checks whether pitch is 0 at every offset, and if it is then the channel gets sent
-            #to loop land until all 4 channels are there, which signifies they're all done and things can reset
-            #so this just adds an extra offset where pitch is zero. the actual offset doesn't matter i don't think
-            #(maybe if the offset is less than the prev offset? i don't remember)
-            #but as long as all 4 eventually hit their offsets it loops fine
+                    #not changeable for now, since idk what 64 does, and effects have different... effects depending on channel
+                    temp_bytes += b'\x64\x30'
 
-            #one thing, the bass wave of the menu song seems to change after my edits, idk why that is
-            if loopin:
-                if relative_offset != 0:
-                    temp_bytes += (relative_offset - 1).to_bytes(2, "little")
-                    temp_bytes += b'\x00\x00\x00'
-                else:
-                    temp_bytes += b'\x01\x00\x00\x00\x00'
+                #the bears code checks whether pitch is 0 at every offset, and if it is then the channel gets sent
+                #to loop land until all 4 channels are there, which signifies they're all done and things can reset
+                #so this just adds an extra offset where pitch is zero. the actual offset doesn't matter i don't think
+                #(maybe if the offset is less than the prev offset? i don't remember)
+                #but as long as all 4 eventually hit their offsets it loops fine
 
-        #i think it'd be easiest if it always had the same length, so i'll add a bunch of filler after
-        temp_bytes += (song_ID_map[song_ID][1] - len(temp_bytes)) * b'\x00'
-        print(temp_bytes, (song_ID_map[song_ID][1] - len(temp_bytes)))
-        gamefile.seek(song_ID_map[song_ID][0])
-        gamefile.write(temp_bytes)
-        gamefile.close()
+                #one thing, the bass wave of the menu song seems to change after my edits, idk why that is
+                if loopin:
+                    if relative_offset != 0:
+                        temp_bytes += (relative_offset - 1).to_bytes(2, "little")
+                        temp_bytes += b'\x00\x00\x00'
+                    else:
+                        temp_bytes += b'\x01\x00\x00\x00\x00'
+
+            #i think it'd be easiest if it always had the same length, so i'll add a bunch of filler after
+            temp_bytes += (song_ID_map[song_ID][1] - len(temp_bytes)) * b'\x00'
+            #print(temp_bytes, (song_ID_map[song_ID][1] - len(temp_bytes)))
+            gamefile.seek(song_ID_map[song_ID][0])
+            gamefile.write(temp_bytes)
+            gamefile.close()
+            print("Done!")
+    except Exception:
+        print("File not found.")
 
     # as one extra comment, some edge cases can happen if you choose no loops & leave some channels
     # empty, but i don't think it'd be worth fixing, so it shall stay like that.
@@ -344,30 +445,43 @@ def game_writer(notes, note_lengths, P2B, FPQ):
 
 
 def file_loader(notes, note_lengths):
-    name = input("\nEnter a filename for the data:")
+    name = input("\nEnter a filename for the data (in music_csv/) (.csv file format assumed, so don't type it): ")
+    try:
+        with open(f"music_csv/{name}.csv", "r") as file:
+            for channel in range(4):
+                #remove the rightmost \n, then any trailing commas, and finally split with commas as delim.
+                #the trailing commas are a result of editing in libreoffice, idk if anyone will do that but
+                #it seems like a good way to visualize things/edit things as a whole
+                temp = file.readline().rstrip().rstrip(",").split(",")
+                #without this there'd be icky empty strings left in all the empty channels and i dont want them
+                if temp == ['']:
+                    temp = []
+                #print(temp)
+                notes[channel] = temp
 
-    with open(f"music_csv/{name}.csv", "r") as file:
-        for channel in range(4):
-            #remove the rightmost \n, then any trailing commas, and finally split with commas as delim.
-            #the trailing commas are a result of editing in libreoffice, idk if anyone will do that but
-            #it seems like a good way to visualize things/edit things as a whole
-            temp = file.readline().rstrip().rstrip(",").split(",")
-            #without this there'd be icky empty strings left in all the empty channels and i dont want them
-            if temp == ['']:
-                temp = []
-            #print(temp)
-            notes[channel] = temp
-
-            #same, but for lengths instead of notes
-            temp = file.readline().rstrip().rstrip(",").split(",")
-            if temp == ['']:
-                temp = []
-            #print(temp)
-            note_lengths[channel] = temp
+                #same, but for lengths instead of notes
+                temp = file.readline().rstrip().rstrip(",").split(",")
+                if temp == ['']:
+                    temp = []
+                #print(temp)
+                note_lengths[channel] = temp
+    except Exception:
+        print("File not found.")
+        return
 
     print("\nLoad successful.")
 
-    return int(input("\nWhat is the FPQ (frames per quarter note) of this track?"))
+    stopper = True
+    while stopper:
+        try:
+            temporarium = int(input("\nWhat is the FPQ (frames per quarter note) of this track? "))
+            if temporarium <= 0:
+                raise ValueError
+            stopper = False
+        except Exception:
+            print("Invalid input.")
+    return temporarium
+
 
 
 main()
