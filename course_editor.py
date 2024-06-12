@@ -204,11 +204,11 @@ for sport in range(6):
     tempCSV = []
     for difficulty in range(3):
         try:
-            tempCSV.append([int(byte) for byte in (re.split(",|\n", open(f"levels/{SPORTS[sport]}{DIFFICULTIES[difficulty]}Level.csv", "r").read()))])
+            tempCSV.append([int(byte) for byte in (re.split(",|\n", open(f"levels/{SPORTS[sport]}{DIFFICULTIES[difficulty]}.csv", "r").read()))])
         except FileNotFoundError:
             if SPORTS[sport][-8:] == "_effects":
                 namelength = len(SPORTS[sport])
-                tempCSV.append([int(byte) for byte in (re.split(",|\n", open(f"levels/{SPORTS[sport][0:namelength - 8]}{DIFFICULTIES[difficulty]}Level.csv", "r").read()))])
+                tempCSV.append([int(byte) for byte in (re.split(",|\n", open(f"levels/{SPORTS[sport][0:namelength - 8]}{DIFFICULTIES[difficulty]}.csv", "r").read()))])
             else:
                 raise FileNotFoundError
     allLevelTileCSVs.append(tempCSV)
@@ -792,9 +792,11 @@ while running:
                         if courseSize < sportHeights[tempSport][tempDiff]*0x10:
                             liszt += ([0xFF] * ((sportHeights[tempSport][tempDiff] * 0x10) - courseSize)) #if the height isn't the max, this fills the rest with sawdust (0xFF tiles cuz why not)
                         allLevelTileCSVs[tempSport][tempDiff] = liszt
-                        sportHeights[tempSport][tempDiff] = courseSize//0x10
+                        sportHeights[tempSport][tempDiff] = header[0]
+                        bearsCourseHorizontalSpawns[tempSport][tempDiff] = header[1]
                         sportType = tempSport
                         sportDifficulty = tempDiff
+
                 except FileNotFoundError:
                     print("File not found.")
                 except ValueError:
