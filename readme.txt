@@ -7,8 +7,11 @@ First things first you'll need python and a python IDE for most of the tiny prog
 
 **COURSE EDITOR INFO**
 left click to select/place tiles
-right click is an eyedropper tool for tiles
+middle click is an eyedropper tool for tiles
+right click lets you select a group of tiles, for use in the stamp draw mode
 up/down or scroll to move
+
+draw modes include pencil (draws one at a time), bucket (fills tiles of the same type), and stamp (draws the stamp chosen by the right click select thing)
 
 sports and difficulties are usually represented via a number instead of by name (toboggan = 0, sled = 1, raft = 2, kayak = 3, bike = 4, dirtboard = 5) (beginner = 1, intermediate = 2, advanced = 3)
 
@@ -28,6 +31,7 @@ loading from a game/a full game loads course data from a bears game, instead of 
 
 loading tiles allows you to change the bigtile graphics/collsiion graphics in some stage (and are loaded from folders in the tiles folder. the print button in the tile editor can make these folders.)
 
+changing the course height and spawn location are self explanatory, and are represented by the red shapes at the bottom of the course. the pink rectangle represents the spawning camera (assuming the code works)
 
 **TILE EDITOR INFO**
 left click on a palette/colour (top left) to choose it, and right click on a colour to be prompted to change it (in the console, using RGB values from 0 to 255)
