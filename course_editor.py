@@ -24,7 +24,7 @@ pygame.display.set_icon(ICON)
 CONST_SPORTS = ["toboggan", "sled", "raft", "kayak", "bike", "dirtboard"]
 SPORTS = ["toboggan", "sled", "raft", "kayak", "bike", "dirtboard"]
 DIFFICULTIES = ["Beginner", "Intermediate", "Expert"]
-ORIGINAL_SPORT_HEIGHTS = [[0x21A, 0x2A1, 0x31E], [0x21A, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E]]
+MAX_SPORT_HEIGHTS = [[0x21A, 0x2A1, 0x31E], [0x21A, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x3FF], [0x21B, 0x2A1, 0x3FF], [0x21B, 0x2A1, 0x3FF], [0x21B, 0x2A1, 0x3FF]] #some courses (experts) have some blank space at the ends which can be used. technically the long experts have 0x3FFB tiles at the ready, but gotta be a mult of 0x10 to have a complete row so may as well not
 sportHeights = [[0x21A, 0x2A1, 0x31E], [0x21A, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E], [0x21B, 0x2A1, 0x31E]]
 BEARS_LEVEL_DATA_OFFSET_RANGES = [[0x28004, 0x2C004, 0x30004], [0x34004, 0x38004, 0x3C004], [0x40004, 0x44004, 0x48004], [0x4C004, 0x50004, 0x54004], [0x58004, 0x5C004, 0x60004], [0x64004, 0x68004, 0x6C004]]
 sportType = 0
@@ -204,21 +204,16 @@ def checkerer():
 
 #tilemap data storage (lists in lists, where list[sport][diff] = the correct data)
 for sport in range(6):
-    tempCSV = []
+    tempCSVPair = []
     for difficulty in range(3):
-        try:
-            tempCSVRead = re.split(",|\n", open(f"levels/{SPORTS[sport]}{DIFFICULTIES[difficulty]}.csv", "r").read())
-            #sportHeights[sport][difficulty] = int(tempCSVRead[0])
-            #bearsCourseHorizontalSpawns[sport][difficulty] = int(tempCSVRead[1])
-            #bearsCourseCameras[sport][difficulty] = int(tempCSVRead[2]) already loaded in, but i'll keep it
-            tempCSV.append([int(byte) for byte in tempCSVRead[16:-1]])
-        except FileNotFoundError:
-            if SPORTS[sport][-8:] == "_effects":
-                namelength = len(SPORTS[sport])
-                tempCSV.append([int(byte) for byte in (re.split(",|\n", open(f"levels/{SPORTS[sport][0:namelength - 8]}{DIFFICULTIES[difficulty]}.csv", "r").read()))])
-            else:
-                raise FileNotFoundError
-    allLevelTileCSVs.append(tempCSV)
+        tempCSVRead = re.split(",|\n", open(f"levels/{SPORTS[sport]}{DIFFICULTIES[difficulty]}.csv", "r").read())
+        #sportHeights[sport][difficulty] = int(tempCSVRead[0])
+        #bearsCourseHorizontalSpawns[sport][difficulty] = int(tempCSVRead[1])
+        #bearsCourseCameras[sport][difficulty] = int(tempCSVRead[2]) already loaded in, but i'll keep it
+        tempCSV = [int(byte) for byte in tempCSVRead[16:-1]]
+        tempCSV += ([0xFF] * ((MAX_SPORT_HEIGHTS[sport][difficulty] * 0x10) - len(tempCSV)))
+        tempCSVPair.append(tempCSV)
+    allLevelTileCSVs.append(tempCSVPair)
 
 #tile images (they change depending on the sport type)
 def tileImageStorer(sport):
@@ -288,12 +283,13 @@ def loadLevel(name, sportType, sportDifficulty):
         for byte in data:
             liszt.append(byte)
         allLevelTileCSVs[sportType][sportDifficulty] = liszt
-        liszt += ([0xFF] * ((sportHeights[sportType][sportDifficulty] * 0x10) - len(liszt)))
+        liszt += ([0xFF] * ((MAX_SPORT_HEIGHTS[sportType][sportDifficulty] * 0x10) - len(liszt)))
 
 def paint(X, Y, tile, startTile):
     global sportType
     global sportDifficulty
     global allLevelTileCSVs
+    global sportHeights
     tileQueue = [[X, Y]]
     allLevelTileCSVs[sportType][sportDifficulty][X + Y * 16] = tile
     while tileQueue != []:
@@ -312,7 +308,7 @@ def paint(X, Y, tile, startTile):
             #paint(x, y-1, tile, startTile)
             tileQueue.append([x, y-1])
             allLevelTileCSVs[sportType][sportDifficulty][x + (y-1) * 16] = tile
-        if y < len(allLevelTileCSVs[sportType][sportDifficulty])//16 - 1 and allLevelTileCSVs[sportType][sportDifficulty][x+(y+1)*16] == startTile:
+        if y < sportHeights[sportType][sportDifficulty] - 1 and allLevelTileCSVs[sportType][sportDifficulty][x+(y+1)*16] == startTile:
             #paint(x, y+1, tile, startTile)
             tileQueue.append([x, y+1])
             allLevelTileCSVs[sportType][sportDifficulty][x + (y+1) * 16] = tile
@@ -322,7 +318,8 @@ def stamp(X, Y, stamp):
     global sportType
     global sportDifficulty
     global allLevelTileCSVs
-    height = min(len(allLevelTileCSVs[sportType][sportDifficulty])//16 - Y, len(stamp))
+    global sportHeights
+    height = min(sportHeights[sportType][sportDifficulty] - Y, len(stamp))
     length = min(16 - X, len(stamp[0]))
     for i in range(height):
         for j in range(length):
@@ -350,8 +347,8 @@ def loadSubtileData(sport):
             bigtilePalettes = [0] * 0x400
             subtileGraphics = ["00000000"] * subtileGraphicsLengths[sport]
             return
-        name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (say E for empty subtiles) (. to abort): ")
-    if name != ".":
+        name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (say E for empty subtiles) (leave blank to abort): ")
+    if name != "":
         try:
             with open(f"levels/modified_levels/{name}.gbc", 'rb') as file:
                 byteLand = file.read()
@@ -408,8 +405,8 @@ def saveThineData(sport):
     subtileGraphicsOffsets = [0x5976, 0x99D7, 0xD8EB, 0x119B4, 0x15AFB, 0x19C3B]
     subtileGraphicsLengths = [0x1EA0, 0x1DC0, 0x1FA0, 0x1FD0, 0x1F70, 0x1900]
     # subtileColoursOffsets = above two added, plus 0xA
-    name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (. to abort): ")
-    if name != ".":
+    name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (leave blank to abort): ")
+    if name != "":
         try:
             with open(f"levels/modified_levels/{name}.gbc", 'r+b') as file:
                 check = input("Do you want to save your palette to the file? (if no, don't enter anything): ")
@@ -707,7 +704,7 @@ while running:
 
         #camera test
         cameraX = bearsCourseCameras[sportType][sportDifficulty]*2
-        cameraRect = pygame.rect = (cameraX, lineHeight - 0x120, 0x140, 0x120)
+        cameraRect = pygame.rect = (cameraX, lineHeight - 0x122, 0x140, 0x120)
         pygame.draw.rect(SCREEN, (255, 200, 200), cameraRect, 2)
 
         # toggles the grid spacings (and draws grid button)
@@ -726,14 +723,13 @@ while running:
         if SAVE_BUTTON.draw(SCREEN):
             CSVList = allLevelTileCSVs[sportType][sportDifficulty][0:0x10*sportHeights[sportType][sportDifficulty]]
 
-            filename = input("Name your file (. to skip): ") #CSV maker
-            if filename != ".":
+            filename = input("Name your file (leave blank to skip): ") #CSV maker
+            if filename != "":
+                proceed = True
                 if not os.path.exists(f"levels/modified_levels"):
                     os.makedirs(f"levels/modified_levels")
                 if os.path.exists(f"levels/modified_levels/{filename}.csv"):
-                    if input('File exists. Do you want to overwrite? ("Y" for yes): ').upper() == "Y":
-                        proceed = True
-                    else:
+                    if not input('File exists. Do you want to overwrite? ("Y" for yes): ').upper() == "Y":
                         proceed = False
                 if proceed:
                     with open(f"levels/modified_levels/{filename}.csv", "w", newline="") as file:
@@ -743,8 +739,8 @@ while running:
                             writenator.writerow(CSVList[i:i + 16])
                         print("File saved.")
 
-            bearsname = input("enter the name of the bears file (in levels/modified_levels/) to which the data should be saved here (.gbc file format assumed, so don't type it)? (. to skip): ") #GBC editor
-            if bearsname != ".":
+            bearsname = input("enter the name of the bears file (in levels/modified_levels/) to which the data should be saved here (.gbc file format assumed, so don't type it)? (leave blank to skip): ") #GBC editor
+            if bearsname != "":
                 try:
                     with open(f"levels/modified_levels/{bearsname}.gbc", "r+b") as file:
                         file.seek(BEARS_LEVEL_DATA_OFFSET_RANGES[sportType][sportDifficulty])
@@ -753,10 +749,14 @@ while running:
                             CSVByteArray += num.to_bytes(1, "little")
                         file.write(CSVByteArray)
                         #new height
+                        file.seek((0xA + sportType*3 + sportDifficulty)*0x4000+2)
+                        file.write(min(sportHeights[sportType][sportDifficulty].to_bytes(2, "little", signed=False), MAX_SPORT_HEIGHTS[sportType][sportDifficulty].to_bytes(2, "little", signed=False)))
+                        #new spawn
                         file.seek(BEARS_COURSE_HEIGHT_OFFSETS[sportType] + sportDifficulty)
                         file.write(bearsCourseHorizontalSpawns[sportType][sportDifficulty].to_bytes())
+                        #new cam
                         file.seek(BEARS_COURSE_HEIGHT_OFFSETS[sportType] + sportDifficulty + 3)
-                        file.write(max(min(bearsCourseHorizontalSpawns[sportType][sportDifficulty] - 0x50, 0x60), 0).to_bytes())
+                        file.write(bearsCourseCameras[sportType][sportDifficulty].to_bytes())
                         file.close()
                         print("Data saved.")
                 except FileNotFoundError:
@@ -764,8 +764,8 @@ while running:
 
         # loading features
         if LOAD_BUTTON.draw(SCREEN):
-            filename = input("enter the name of the CSV file (in levels/modified_levels/) here (.csv file format assumed, so don't type it) (. to abort): ")
-            if filename != ".":
+            filename = input("enter the name of the CSV file (in levels/modified_levels/) here (.csv file format assumed, so don't type it) (leave blank to abort): ")
+            if filename != "":
                 fileFound = True
                 try:
                     file = open(f"levels/modified_levels/{filename}.csv", "r")
@@ -781,11 +781,14 @@ while running:
                         liszt = [int(byte) for byte in tempArrrgh[16:-1]] #the -1 takes off the last \n of a csv file, and the 16 is to remove the empty header junk
                         courseSize = len(liszt)
                         if courseSize < sportHeights[sportType][sportDifficulty]*0x10:
-                            liszt += ([0xFF] * ((sportHeights[sportType][sportDifficulty] * 0x10) - courseSize)) #if the height isn't the max, this fills the rest with sawdust (0xFF tiles cuz why not)
+                            liszt += ([0xFF] * ((MAX_SPORT_HEIGHTS[sportType][sportDifficulty] * 0x10) - courseSize)) #if the height isn't the max, this fills the rest with sawdust (0xFF tiles cuz why not)
                         allLevelTileCSVs[sportType][sportDifficulty] = liszt
                         sportHeights[sportType][sportDifficulty] = int(header[0])
+                        if MAX_SPORT_HEIGHTS[sportType][sportDifficulty] < int(header[0]): #heights can't go past the orig cap yet sadly
+                            print("the level height stored in this CSV is too long for this level and has been automatically shortened.")
+                            sportHeights[sportType][sportDifficulty] = sportHeights[sportType][sportDifficulty]
                         bearsCourseHorizontalSpawns[sportType][sportDifficulty] = int(header[1])
-                        bearsCourseCameras = int(header[2])
+                        bearsCourseCameras[sportType][sportDifficulty] = int(header[2])
 
                         file.close()
                     except ValueError:
@@ -807,16 +810,16 @@ while running:
             pygame.time.wait(200)
 
         if LOAD_FROM_GAME_BUTTON.draw(SCREEN):
-            name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (. to abort): ")
-            if name != ".":
+            name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (leave blank to abort): ")
+            if name != "":
                 try:
                     loadLevel(name, sportType, sportDifficulty)
                 except IOError:
                     print("bad file .. ;( i will now cry")
 
         if LOAD_FULL_GAME_BUTTON.draw(SCREEN):
-            name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (. to abort): ")
-            if name != ".":
+            name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (leave blank to abort): ")
+            if name != "":
                 try:
                     for i in range(6):
                         for j in range(3):
@@ -825,8 +828,8 @@ while running:
                     print("bad file .. ;( i will now cry")
 
         if LOAD_LEVEL_TILES_BUTTON.draw(SCREEN):
-            name = input("enter the name of the folder (in tiles/) containing the new tile graphics and effects here (e.g. if in the levels folder you have toboggan and toboggan_effects, type toboggan. to fill these folders, use the tile editor mode): ")
-            if name != ".":
+            name = input("enter the name of the folder (in tiles/) containing the new tile graphics and effects here (e.g. if in the levels folder you have toboggan and toboggan_effects, type toboggan. to fill these folders, use the tile editor mode) (leave blank to abort): ")
+            if name != "":
                 if os.path.exists(f"tiles/{name}") and os.path.exists(f"tiles/{name}_effects"):
                     temp = SPORTS[sportType]
                     SPORTS[sportType] = name
@@ -838,9 +841,9 @@ while running:
 
         if HEIGHT_CHANGE_BUTTON.draw(SCREEN):
             try:
-                    tempHeight = int(input(f"Input the new height you want (the old one was {sportHeights[sportType][sportDifficulty]}): "))
-                    if tempHeight < 1 or tempHeight > ORIGINAL_SPORT_HEIGHTS[sportType][sportDifficulty]:
-                        print("The height is either too small or too big (and would overwrite other code.")
+                    tempHeight = int(input(f"Input the new height you want (the old one was {sportHeights[sportType][sportDifficulty]}, and the max height is {MAX_SPORT_HEIGHTS[sportType][sportDifficulty]}): "))
+                    if tempHeight < 9 or tempHeight > MAX_SPORT_HEIGHTS[sportType][sportDifficulty]:
+                        print("The height is either too small (under 9) or too tall (and would overwrite other code).")
                     else:
                         sportHeights[sportType][sportDifficulty] = tempHeight
                     #make var to hold, also compare to original_heights, and add that in the last input message
@@ -1133,11 +1136,11 @@ while running:
             if mouseX < 80 and mouseY < 160:
                 gogo = False
                 while not gogo:
-                    newHex = input(f"input new rgb values, separated by spaces (e.g. 12 23 255) (currently {hexCodes[(mouseY//20)*4+(mouseX//20)]}) (. to abort): ")
-                    if newHex != ".":
+                    newHex = input(f"input new rgb values, separated by spaces (e.g. 12 23 255) (currently {hexCodes[(mouseY//20)*4+(mouseX//20)]}) (leave blank to abort): ")
+                    if newHex != "":
                         newHex = newHex.split(" ", 3)
                         if len(newHex) != 3:
-                            print("bAD!")
+                            print("Invalid input.")
                         else:
                             try:
                                 for i in range(3):
@@ -1145,7 +1148,7 @@ while running:
                                 hexCodes[(mouseY//20)*4+(mouseX//20)] = newHex
                                 gogo = True
                             except Exception:
-                                print("bAD!")
+                                print("Invalid input.")
                     else:
                         gogo = True
 
