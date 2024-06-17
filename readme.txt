@@ -70,16 +70,12 @@ i'd recommend getting/making sheet music first, as you'll need to make two lists
 - bigtilebmp: for making bmp images of whole course graphics and collisions (very spaghettish, i don't remember writing it lol) (if you want to use it, you'll have to make two folders in gaming called atesting and atesting2)
 - tile layer pro (not in here): nice program for editing subtile graphics (use ctrl+g to make things easier)
 - bears spreadsheet: gives a bunch of addresses (useful for finding subtile graphics offsets in tile layer pro)
-- csvifier.py: old program, used to convert txt files to csv files in the levels folder, if you need that
 - HxD, notepad++, or some other hex editor could be useful if you need to look at game hex code (also not in here)
 
 ----------------------------------------------------------------------------------------
 
    todo in future:
--stamping tool (e.g. for a tree. if you want to do something like this right now, the best alternative is saving a csv file and copying/pasting there, which is not good!)
--make a button to reset to blank levels, with any height/width
--make it easier to change the height of a level? just need to change the correct level height value e.g. 0x28003 & 4, and make sure it doesn't go OOB/overwrite some graphics)
--paint bucket tool
+-make a button to reset to blank levels, with any height/width (can be accomplished with stamp tool for now)
 -make a program for sprite editing (in theory easy? also easy to do manually with tile layer pro, i think. but it could be nicer)
 -start making a music editor in pygame
 -make the code less messy
@@ -87,21 +83,3 @@ i'd recommend getting/making sheet music first, as you'll need to make two lists
 -make different resolution sizes?
 -mario maker dropdown menu?
 -find where i put the other bmp maker files? they're just gone idk
-
-----------------------------------------------------------------------------------------
-OBSOLETED BY THE NEW TILE EDITOR IN course_editor
-----------------------------------------------------------------------------------------
-
-   bigtile_collision_assembler.py (for editing GBC game bigtile collision. each gets a collision type for the TL, TR, BL, & BR subtiles)
-either check the tile editor tool, the tile folders, or the useful_things tile reference map to figure out which bigtile you're editing (from 0 to 255).
-
-there should be decent info for what each effect byte does
-
-----------------------------------------------------------------------------------------
-
-   bigtileassembler.py (for combining 4 subtiles into a bigtile in a GBC game. changes graphics, not tile effects)
-either check the tile editor tool, the tile folders, or the useful_things tile reference map to figure out which bigtile you're editing (from 0 to 255).
-
-you'll have to use tile layer pro to edit subtile (8x8 tile) graphics, and then this program lets you mash them together into 16x16 bigtiles
-
-you'll also have to create your own palette colours (offsets are documented, but some are far from the regular spot: will be documented later
