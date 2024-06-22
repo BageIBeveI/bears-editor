@@ -1620,7 +1620,7 @@ while running:
                 pygame.time.wait(100)
 
             #non 17 thingies (vision of the layers of the bayers with the big wayers)
-            elif 856 < mouseX < 856+thingyPixel and 445 < mouseY < 445 + thingyPixel * (layers+1) + 10*layers and not subtileMode and loadedSpriteType != 17:
+            elif 856 < mouseX < 856+thingyPixel and 445 < mouseY < 445 + thingyPixel * (layers+1) + 10*layers and loadedSpriteType != 17:
                 for i in range(layers):
                     if 445 + (thingyPixel+10)*(i) < mouseY < 445 + thingyPixel*(i+1) + 10*(i): #button 1 (prio)
                         if spriteWidth[i] != spriteWidth[layerChosen] or spriteHeight[i] != spriteHeight[layerChosen]:
@@ -1870,49 +1870,48 @@ while running:
         pygame.draw.rect(SCREEN, (255, 0, 0), sportTypeButtons[sportType], 1)
 
         # drawing subtile palettey extra thingies
-        if not subtileMode and loadedSpriteType == 17: #since palettes are connected to tiles i dont think these would be useful for bear sprites
-            for i, thingy in enumerate(subtileyPalleteyThingies):
-                #if i == 0 and loadedSpriteType != 17:
-                #    continue
-                rectangle = pygame.Rect = (856, 395 + i*(thingyPixel+10), thingyPixel, thingyPixel)
-                if thingy:
-                    pygame.draw.rect(SCREEN, (255, 255, 0), rectangle)
-                else:
-                    pygame.draw.rect(SCREEN, (75, 75, 100), rectangle)
-
-        # drawing layer button things
         if not subtileMode:
-            if loadedSpriteType != 17:
-
-                if EYE_BUTTON.draw(SCREEN):
-                    if eyeMode:
-                        EYE_BUTTON = button.Button(856, 395, EYE_IMAGES[0], 1)
-                    else:
-                        EYE_BUTTON = button.Button(856, 395, EYE_IMAGES[1], 1)
-                    eyeMode = not eyeMode
-                    pygame.time.wait(200)
-
-                for i in range(layers):
-                    # if i == 0 and loadedSpriteType != 17:
+            if loadedSpriteType == 17: #since palettes are connected to tiles i dont think these would be useful for bear sprites
+                for i, thingy in enumerate(subtileyPalleteyThingies):
+                    #if i == 0 and loadedSpriteType != 17:
                     #    continue
-                    rectangle = pygame.Rect = (856, 445 + i * (thingyPixel+10), thingyPixel, thingyPixel)
-                    if i == layerChosen:
-                        pygame.draw.rect(SCREEN, (200, 255, 50), rectangle)
+                    rectangle = pygame.Rect = (856, 395 + i*(thingyPixel+10), thingyPixel, thingyPixel)
+                    if thingy:
+                        pygame.draw.rect(SCREEN, (255, 255, 0), rectangle)
                     else:
-                        pygame.draw.rect(SCREEN, (75, 100, 150), rectangle)
+                        pygame.draw.rect(SCREEN, (75, 75, 100), rectangle)
 
-            # and the display toggler buttons
-            else:
-                if TOGGLE_SUBTILES_BUTTON.draw(SCREEN):
-                    displayBigtileSubtiles = not displayBigtileSubtiles
-                    alpher = not alpher
-                    pygame.time.wait(200)
+                        # and the display toggler buttons
+                        if not subtileMode:
+                            if TOGGLE_SUBTILES_BUTTON.draw(SCREEN):
+                                displayBigtileSubtiles = not displayBigtileSubtiles
+                                alpher = not alpher
+                                pygame.time.wait(200)
 
-                if TOGGLE_COLLISIONS_BUTTON.draw(SCREEN):
-                    displayBigtileCollision = not displayBigtileCollision
-                    pygame.time.wait(200)
+                            if TOGGLE_COLLISIONS_BUTTON.draw(SCREEN):
+                                displayBigtileCollision = not displayBigtileCollision
+                                pygame.time.wait(200)
 
             SCREEN.blit(thefont.render(f"bigtile: {bigtileSelected}", True, (0, 0, 0)), (18, 8))
+
+        # drawing layer button things
+        if loadedSpriteType != 17:
+            if EYE_BUTTON.draw(SCREEN):
+                if eyeMode:
+                    EYE_BUTTON = button.Button(856, 395, EYE_IMAGES[0], 1)
+                else:
+                    EYE_BUTTON = button.Button(856, 395, EYE_IMAGES[1], 1)
+                eyeMode = not eyeMode
+                pygame.time.wait(200)
+
+            for i in range(layers):
+                # if i == 0 and loadedSpriteType != 17:
+                #    continue
+                rectangle = pygame.Rect = (856, 445 + i * (thingyPixel+10), thingyPixel, thingyPixel)
+                if i == layerChosen:
+                    pygame.draw.rect(SCREEN, (200, 255, 50), rectangle)
+                else:
+                    pygame.draw.rect(SCREEN, (75, 100, 150), rectangle)
 
         SCREEN.blit(thefont.render(f"subtile: {subtileSelected}", True, (0, 0, 0)), (950, 8))
 
