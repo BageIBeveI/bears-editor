@@ -149,7 +149,8 @@ layers = 0
 eyeMode = False
 subtileMovement = 0
 bigQuadMovement = 0
-
+SPRITES = ["moving", "a trick", "b trick", "a up left trick", "b up left trick", "a up right trick", "b up right trick", "left side ramp", "right side ramp", "ramp jump", "mud", "puddle", "ice", "whirlpool", "wipeout", "slowing", "stopped", "course bigtile"]
+BEARTYPES = ["brother", "sister"]
 #[((), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ())],
 
 
@@ -778,7 +779,11 @@ def bmpPrintrerSprite(frame, numberOLayers):
                     for layaer in range(numberOLayers):
                         bitt = graphicsies[layaer][subtileHrz][subtileVt][bitNum]
                         if bitt != "0" and thingeymabobbert[subtileVt*(maxWidth*8) + subtileHrz*8 + bitNum] == dummyColour:
-                            thingeymabobbert[subtileVt*(maxWidth*8) + subtileHrz*8 + bitNum] = palettecode[layaer][int(bitt) + 4 * palettes[layaer][subtileHrz]]
+                            try:
+                                thingeymabobbert[subtileVt*(maxWidth*8) + subtileHrz*8 + bitNum] = palettecode[layaer][int(bitt) + 4 * subtileHrz]
+                            except Exception:
+                                print("waeoaw")
+                            break #can break because after placing a colour, no lower layer can overwrite it, so saves a lil time
                 #for bit in graphicsies[l][k]:  # graphicsies[0] has 8 bytes in its list (contains the left subtile's data.) ([1] has 8 bytes for the right subtile)
 
         guaug += thingeymabobbert # would += to a b'' but that takes super long
@@ -1521,7 +1526,7 @@ while running:
                 paletteSelected = (mouseY - 385) // palPixel
                 if loadedSpriteType == 17:
                     if not subtileMode:
-                        ox400IndexThingForHere = bigtileSelected*spriteWidth[layerChosen]*spriteHeight[layerChosen] + bigtileQuadrantSelected
+                        ox400IndexThingForHere = bigtileSelected*2 + bigtileQuadrantSelected%2 + (bigtileQuadrantSelected//2)*0x20 + (bigtileSelected//0x10)*0x20
                         bigtilePalettes[ox400IndexThingForHere] = (bigtilePalettes[ox400IndexThingForHere] & 0b11111000) | paletteSelected
                 else:
                     spritePalettes[layerChosen][subtileSelected] = paletteSelected
@@ -1711,13 +1716,17 @@ while running:
 
         # saving palette and tile data to a game
         if SAVE_BUTTON.draw(SCREEN):
-            if spriteType != loadedSpriteType:
-                print("Cannot save, as the current sprite data won't work for the selected type.")
-                pygame.time.wait(200)
-            elif loadedSpriteType == 17:
-                saveThineData(sportType)
-            else:
-                savethThineOtherData()
+            print("Currently, you are saving ", end="")
+            if loadedSpriteType != 17:
+                if loadedSportType in (0, 2):
+                    print("the Berenstain family's ", end="")
+                else:
+                    print(f"{BEARTYPES[loadedBearType]} bear's ", end="")
+            if input(f"{SPRITES[loadedSpriteType]} graphics for {SPORTS[loadedSportType]}. Do you want to continue? ('Y' for yes): ").upper() == "Y":
+                if loadedSpriteType == 17:
+                    saveThineData(loadedSpriteType)
+                else:
+                    savethThineOtherData()
 
         #making pngs of bigtiles
         if PRINT_BUTTON.draw(SCREEN):
