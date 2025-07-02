@@ -113,6 +113,9 @@ undoStack = []
 redoStack = []
 currentSubtileStackInfo = []
 
+subtileClipboardNumber = 0
+subtileClipboard = [["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"]]
+
 QUADRANT_MAPPER = {0: "TL", 1: "TR", 2: "BL", 3: "BR"}
 maxSubtiles = []
 groupNum = 0
@@ -184,7 +187,8 @@ NUM_OF_SMALLTILES_DISPLAYED_HZ = (64//SMALLTILE_PIXEL)
 MAX_SCROLL2 = -704 #min(0, -(8 * (numOfSubtiles // (NUM_OF_SMALLTILES_DISPLAYED_HZ)) * SMALLTILE_PIXEL - 290)) ughh whatever ill just hope nobody cares
 # [((), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ())],
 
-#removing the pygame.wait() lines cuz they make the fps look like it's tanking
+
+# waiting times to stop button double clicks and to slow down some scrolling
 buttonWait = 0
 infoWait = 0
 thingyWait = 0
@@ -1233,6 +1237,7 @@ def infoUpdater(stackReset):
     # if P & 0x8 != 0:  # bank
     #    subtileSelected += 0x100
     if stackReset:
+        print("RESET")
         undoStack = []
         redoStack = []
     return
@@ -1721,7 +1726,7 @@ while running:
                 if event.key == pygame.K_RSHIFT or event.key == pygame.K_LSHIFT:
                     scrollSpeed = 2
 
-                # traverse suntiles with keys
+                # traverse subtiles with keys
                 if event.key == pygame.K_t:
                     subtileMovement = 1
                 if event.key == pygame.K_f:
@@ -1770,6 +1775,39 @@ while running:
                             undoStack = undoStack[50:]
                         subtileGraphics[layerChosen][undoneSubtileSelected * 8:undoneSubtileSelected * 8 + 8] = latest[1]
                         currentSubtileStackInfo = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
+
+                if event.key == pygame.K_c:
+                    subtileClipboard[subtileClipboardNumber] = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
+                elif event.key == pygame.K_v:
+                    currentSubtileStackInfo = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
+                    if subtileClipboard[subtileClipboardNumber] != currentSubtileStackInfo:
+                        undoStack.append([subtileSelected, currentSubtileStackInfo])
+                        print(undoStack)
+                        print("V")
+                        subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8] = subtileClipboard[subtileClipboardNumber]
+                        currentSubtileStackInfo = subtileClipboard[subtileClipboardNumber]
+
+                match event.key:
+                    case pygame.K_1:
+                        subtileClipboardNumber = 0
+                    case pygame.K_2:
+                        subtileClipboardNumber = 1
+                    case pygame.K_3:
+                        subtileClipboardNumber = 2
+                    case pygame.K_4:
+                        subtileClipboardNumber = 3
+                    case pygame.K_5:
+                        subtileClipboardNumber = 4
+                    case pygame.K_6:
+                        subtileClipboardNumber = 5
+                    case pygame.K_7:
+                        subtileClipboardNumber = 6
+                    case pygame.K_8:
+                        subtileClipboardNumber = 7
+                    case pygame.K_9:
+                        subtileClipboardNumber = 8
+                    case pygame.K_0:
+                        subtileClipboardNumber = 9
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
@@ -1840,6 +1878,7 @@ while running:
         if scroll2 > 0:
             scroll2 = 0
 
+        # != 0 means scrolling thru subtiles with tfgh keys
         if subtileMovement != 0:
             if subtileMovWait == 0:
                 match subtileMovement:
@@ -1867,6 +1906,7 @@ while running:
             else:
                 subtileMovWait -= 1
 
+        # != 0 means scrolling thru bigtile with ijkl keys
         if bigQuadMovement != 0:
             if bigQuadMovWait == 0:
                 match bigQuadMovement:
@@ -2136,7 +2176,7 @@ while running:
             if loadedSpriteType in (27, 28):
                 print(f"(Note that this palette is for the selected level, and that changing this palette changes only this level's colours.)")
             if loadedSpriteType == 22:
-                saveThine22Data(loadedSpriteType)
+                saveThine22Data(loadedSportType)
             elif loadedSpriteType < 22:
                 saveThineSub22Data()
             else:
