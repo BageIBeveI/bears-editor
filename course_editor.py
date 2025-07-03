@@ -113,6 +113,7 @@ undoStack = []
 redoStack = []
 currentSubtileStackInfo = []
 
+# copy paste variables in subtile mode
 subtileClipboardNumber = 0
 subtileClipboard = [["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"]]
 
@@ -475,6 +476,7 @@ def loadSubtileData(sport):
     global spriteSubtiles
     global layerChosen
     global loadedSpriteType
+    global loadedSportType
     global eyeMode
     layerChosen = 0
     # bigtileGraphicsOffsets = COLLISION_OFFSETS plys 0x40A
@@ -535,6 +537,7 @@ def loadSubtileData(sport):
                 spriteSubtiles = [[numby for numby in byteLand[BIGTILE_COLLISION_OFFSETS[sport] + 0x40A:BIGTILE_COLLISION_OFFSETS[sport] + 0x40A + frameCount*4]]]
                 spritePalettes = [[numby for numby in byteLand[BIGTILE_COLLISION_OFFSETS[sport] + 0x80A:BIGTILE_COLLISION_OFFSETS[sport] + 0x80A + frameCount*4]]]
             print("Loaded.")
+            loadedSportType = sport
             return
         except FileNotFoundError:
             print("bad file. get outta here! ...")
@@ -1237,7 +1240,6 @@ def infoUpdater(stackReset):
     # if P & 0x8 != 0:  # bank
     #    subtileSelected += 0x100
     if stackReset:
-        print("RESET")
         undoStack = []
         redoStack = []
     return
@@ -1585,9 +1587,10 @@ while running:
                 except IOError:
                     print("bad file .. ;( i will now cry")
 
+        # loads one level's graphics
         if LOAD_LEVEL_TILES_BUTTON.draw(SCREEN):
             if lockFileName:
-                name = lockedFileName + "_" + CONST_SPORTS[sportType]
+                name = lockedFileName + "_course bigtile_" + CONST_SPORTS[sportType]
             else:
                 name = input("enter the name of the folder (in tiles/) containing the new tile graphics and effects here (e.g. if in the levels folder you have toboggan and toboggan_effects, type toboggan. to fill these folders, use the tile editor mode) (leave blank to abort): ")
             if name != "":
@@ -1776,17 +1779,18 @@ while running:
                         subtileGraphics[layerChosen][undoneSubtileSelected * 8:undoneSubtileSelected * 8 + 8] = latest[1]
                         currentSubtileStackInfo = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
 
+                # copying and pasting in subtile mode
                 if event.key == pygame.K_c:
                     subtileClipboard[subtileClipboardNumber] = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
+                
                 elif event.key == pygame.K_v:
                     currentSubtileStackInfo = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
                     if subtileClipboard[subtileClipboardNumber] != currentSubtileStackInfo:
                         undoStack.append([subtileSelected, currentSubtileStackInfo])
-                        print(undoStack)
-                        print("V")
                         subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8] = subtileClipboard[subtileClipboardNumber]
                         currentSubtileStackInfo = subtileClipboard[subtileClipboardNumber]
 
+                # changing the subtile mode copying clipboard
                 match event.key:
                     case pygame.K_1:
                         subtileClipboardNumber = 0
@@ -2205,7 +2209,7 @@ while running:
                     bmpPrintrer22up(i, layerChosen, False)
             print("tiles saved to temp folders in levels as bmp files!")
             if lockFileName:
-                name = lockedFileName + "_" + SPRITES[loadedSpriteType] + "_" + CONST_SPORTS[sportType]
+                name = lockedFileName + "_" + SPRITES[loadedSpriteType] + "_" + CONST_SPORTS[loadedSportType]
             else:
                 name = input("do you want to turn these into png files, and if so to which folder should they be saved? (makes folders called 'name' and 'name_effects' in the tiles folder, unless they exist already) (leave blank for no): ")
             if name != "":
