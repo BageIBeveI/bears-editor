@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="https://music-encoding.org/schema/5.0/mei-basic.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-model href="https://music-encoding.org/schema/5.0/mei-basic.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<mei xmlns="http://www.music-encoding.org/ns/mei" meiversion="5.0+basic">
+   <meiHead>
+      <fileDesc>
+         <titleStmt>
+            <title type="main">Untitled score</title>
+            <title type="subordinate">Subtitle</title>
+            <respStmt>
+               <persName role="composer">Composer / arranger</persName>
+            </respStmt>
+         </titleStmt>
+         <pubStmt>
+            <date isodate="2025-07-16T17:31:11" />
+         </pubStmt>
+      </fileDesc>
+   </meiHead>
+   <music>
+      <body>
+         <mdiv>
+            <score>
+               <scoreDef>
+                  <pgHead>
+                     <rend halign="center" valign="top">
+                        <rend type="title" fontsize="x-large">Untitled score</rend>
+                        <lb />
+                        <rend type="subtitle" fontsize="large">Subtitle</rend>
+                     </rend>
+                     <rend halign="right" valign="bottom">
+                        <rend type="composer">Composer / arranger</rend>
+                     </rend>
+                  </pgHead>
+                  <staffGrp>
+                     <staffDef n="1" lines="5" meter.count="40" meter.unit="1">
+                        <label>Kazoo</label>
+                        <labelAbbr>Kaz.</labelAbbr>
+                        <clef shape="G" line="2" />
+                     </staffDef>
+                  </staffGrp>
+               </scoreDef>
+               <section xml:id="s1">
+                  <pb />
+                  <measure xml:id="m11hu8az" right="end" n="1">
+                     <staff xml:id="m1s1" n="1">
+                        <layer xml:id="m1s1l1" n="1">
+                           <beam>
+                              <note xml:id="n1mev9mv" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1sqsvex" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1cceztw" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1s4mrkw" dur="16" pname="d" oct="3" />
+                              <note xml:id="nfbnble" dur="16" pname="c" oct="3" />
+                              <note xml:id="ncc31hh" dur="16" pname="c" oct="3" />
+                              <note xml:id="nk6ws4y" dur="16" pname="e" oct="3" />
+                              <note xml:id="nq7ount" dur="16" pname="d" oct="3" />
+                              <note xml:id="n1l38gar" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1lo0opf" dur="16" pname="c" oct="3" />
+                              <note xml:id="n4hu9hq" dur="16" pname="e" oct="3" />
+                              <note xml:id="n7vsn8" dur="16" pname="d" oct="3" />
+                              <note xml:id="n4m2pc1" dur="16" pname="c" oct="3" />
+                              <note xml:id="nm6xqs4" dur="16" pname="c" oct="3" />
+                              <note xml:id="nzegkhr" dur="16" pname="e" oct="3" />
+                              <note xml:id="n133gmts" dur="16" pname="d" oct="3" />
+                              <note xml:id="n1t74fop" dur="16" pname="c" oct="3" />
+                              <note xml:id="nl0w5p2" dur="16" pname="c" oct="3" />
+                              <note xml:id="n37toji" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1ft1vt6" dur="16" pname="d" oct="3" />
+                              <note xml:id="nhfr0te" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1mgi60i" dur="16" pname="c" oct="3" />
+                              <note xml:id="nybmfue" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1e81uqk" dur="16" pname="d" oct="3" />
+                              <note xml:id="nh3jwm3" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1c2u03k" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1pt8xqd" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1x4io9i" dur="16" pname="d" oct="3" />
+                              <note xml:id="nmclgcf" dur="16" pname="c" oct="3" />
+                              <note xml:id="n18zg329" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1oli4o3" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1wmkg7k" dur="16" pname="d" oct="3" />
+                              <note xml:id="n9fe3t3" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1ctqepu" dur="16" pname="g" oct="2" />
+                              <note xml:id="njdd1zw" dur="16" pname="b" oct="2" />
+                              <note xml:id="n1oult3h" dur="16" pname="a" oct="2" />
+                              <note xml:id="npogldc" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1374pmp" dur="16" pname="g" oct="2" />
+                              <note xml:id="ncjeatf" dur="16" pname="b" oct="2" />
+                              <note xml:id="n1j44nof" dur="16" pname="a" oct="2" />
+                              <note xml:id="nyvpc3s" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1c6jtvr" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1ilknqe" dur="16" pname="b" oct="2" />
+                              <note xml:id="nx7iq9" dur="16" pname="a" oct="2" />
+                              <note xml:id="nwc1w24" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1fcq71j" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1c8sx0k" dur="16" pname="b" oct="2" />
+                              <note xml:id="na7ly6t" dur="16" pname="a" oct="2" />
+                              <note xml:id="n195cd2w" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1p4z4jp" dur="16" pname="g" oct="2" />
+                              <note xml:id="npef8v2" dur="16" pname="b" oct="2" />
+                              <note xml:id="n1qr78bu" dur="16" pname="a" oct="2" />
+                              <note xml:id="nkmu7af" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1u0v63" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1pa5vrh" dur="16" pname="b" oct="2" />
+                              <note xml:id="n1abbnxw" dur="16" pname="a" oct="2" />
+                              <note xml:id="nwqn5hb" dur="16" pname="g" oct="2" />
+                              <note xml:id="nissoix" dur="16" pname="g" oct="2" />
+                              <note xml:id="nz7gy99" dur="16" pname="b" oct="2" />
+                              <note xml:id="nvc5c10" dur="16" pname="a" oct="2" />
+                              <note xml:id="n72egru" dur="16" pname="g" oct="2" />
+                              <note xml:id="nbp47lu" dur="16" pname="g" oct="2" />
+                              <note xml:id="nvveul" dur="16" pname="b" oct="2" />
+                              <note xml:id="nfnfxpq" dur="16" pname="a" oct="2" />
+                              <note xml:id="npd1se9" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1nz7exx" dur="16" pname="c" oct="3" />
+                              <note xml:id="not3bnn" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1g4d3jp" dur="16" pname="d" oct="3" />
+                              <note xml:id="nyga0mp" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1ydl9wc" dur="16" pname="c" oct="3" />
+                              <note xml:id="n18yuh73" dur="16" pname="e" oct="3" />
+                              <note xml:id="ni3seot" dur="16" pname="d" oct="3" />
+                              <note xml:id="nuerdtv" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1k1l3z2" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1ttx7n" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1ocvvc3" dur="16" pname="d" oct="3" />
+                              <note xml:id="n1n3jwmy" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1hmbeg3" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1wdm9tn" dur="16" pname="e" oct="3" />
+                              <note xml:id="ngcvjc0" dur="16" pname="d" oct="3" />
+                              <note xml:id="n1dixweg" dur="16" pname="c" oct="3" />
+                              <note xml:id="n188uj1b" dur="16" pname="c" oct="3" />
+                              <note xml:id="nnkkqq5" dur="16" pname="e" oct="3" />
+                              <note xml:id="nugxsl7" dur="16" pname="d" oct="3" />
+                              <note xml:id="n5v6akp" dur="16" pname="c" oct="3" />
+                              <note xml:id="nnp7fe9" dur="16" pname="c" oct="3" />
+                              <note xml:id="nasy97g" dur="16" pname="e" oct="3" />
+                              <note xml:id="naz0sjk" dur="16" pname="d" oct="3" />
+                              <note xml:id="nlm8hry" dur="16" pname="c" oct="3" />
+                              <note xml:id="nign7zi" dur="16" pname="c" oct="3" />
+                              <note xml:id="n12t0tvy" dur="16" pname="e" oct="3" />
+                              <note xml:id="n15n68a7" dur="16" pname="d" oct="3" />
+                              <note xml:id="n1s9fbws" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1arx5nf" dur="16" pname="c" oct="3" />
+                              <note xml:id="n2njypl" dur="16" pname="e" oct="3" />
+                              <note xml:id="nuxbx3r" dur="16" pname="d" oct="3" />
+                              <note xml:id="ndmvpnw" dur="16" pname="g" oct="2" />
+                              <note xml:id="nom7abn" dur="16" pname="g" oct="2" />
+                              <note xml:id="njso3gn" dur="16" pname="b" oct="2" />
+                              <note xml:id="nr9quyh" dur="16" pname="a" oct="2" />
+                              <note xml:id="n1ntxooc" dur="16" pname="g" oct="2" />
+                              <note xml:id="nfftakp" dur="16" pname="g" oct="2" />
+                              <note xml:id="n6jf1aj" dur="16" pname="b" oct="2" />
+                              <note xml:id="n1bk16q4" dur="16" pname="a" oct="2" />
+                              <note xml:id="nhmvuwu" dur="16" pname="c" oct="3" />
+                              <note xml:id="npizam6" dur="16" pname="c" oct="3" />
+                              <note xml:id="n56zme8" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1ivzqa5" dur="16" pname="d" oct="3" />
+                              <note xml:id="na5n4j7" dur="16" pname="c" oct="3" />
+                              <note xml:id="nk8xb4p" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1g2c0qq" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1o4uc5m" dur="16" pname="d" oct="3" />
+                              <note xml:id="n117oljg" dur="16" pname="f" oct="2" />
+                              <note xml:id="n196awc5" dur="16" pname="f" oct="2" />
+                              <note xml:id="n1fd1yuo" dur="16" pname="b" oct="2" />
+                              <note xml:id="n18rl28p" dur="16" pname="a" oct="2" />
+                              <note xml:id="nk98tjk" dur="16" pname="f" oct="2" />
+                              <note xml:id="na463wa" dur="16" pname="f" oct="2" />
+                              <note xml:id="n1aul7kh" dur="16" pname="b" oct="2" />
+                              <note xml:id="nz84637" dur="16" pname="a" oct="2" />
+                              <note xml:id="nuebw8t" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1u68kr3" dur="16" pname="c" oct="3" />
+                              <note xml:id="nithpdx" dur="16" pname="e" oct="3" />
+                              <note xml:id="nhi3qih" dur="16" pname="d" oct="3" />
+                              <note xml:id="nkl7cni" dur="16" pname="c" oct="3" />
+                              <note xml:id="n75z50h" dur="16" pname="c" oct="3" />
+                              <note xml:id="n119slpt" dur="16" pname="e" oct="3" />
+                              <note xml:id="n5n82w6" dur="16" pname="d" oct="3" />
+                              <note xml:id="n1031o21" dur="16" pname="g" oct="2" />
+                              <note xml:id="n11goiqh" dur="16" pname="g" oct="2" />
+                              <note xml:id="nwqipcv" dur="16" pname="g" oct="3" />
+                              <note xml:id="n1wg50px" dur="16" pname="f" oct="3" />
+                              <note xml:id="n1ttyxsg" dur="16" pname="g" oct="2" />
+                              <note xml:id="n11h560w" dur="16" pname="g" oct="2" />
+                              <note xml:id="nwsbra4" dur="16" pname="g" oct="3" />
+                              <note xml:id="n1omdz4p" dur="16" pname="f" oct="3" />
+                              <note xml:id="n1dt68iw" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1ngoni4" dur="16" pname="c" oct="3" />
+                              <note xml:id="ny6mc9b" dur="16" pname="a" oct="3" />
+                              <note xml:id="n1wojm97" dur="16" pname="g" oct="3" />
+                              <note xml:id="n895p9v" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1oytslb" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1r6btab" dur="16" pname="a" oct="3" />
+                              <note xml:id="nb1xn96" dur="16" pname="g" oct="3" />
+                              <note xml:id="nllxzwf" dur="16" pname="c" oct="3" />
+                              <note xml:id="nkk12sg" dur="16" pname="c" oct="3" />
+                              <note xml:id="nnxw9co" dur="16" pname="a" oct="3" />
+                              <note xml:id="ng4n70z" dur="16" pname="f" oct="3" />
+                              <note xml:id="n1fihnyl" dur="16" pname="c" oct="3" />
+                              <note xml:id="nl0qgk1" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1biy4ml" dur="16" pname="a" oct="3" />
+                              <note xml:id="n19xu63l" dur="16" pname="f" oct="3" />
+                              <note xml:id="n17awntq" dur="16" pname="c" oct="3" />
+                              <note xml:id="nukwpy2" dur="16" pname="c" oct="3" />
+                              <note xml:id="nc3fvu5" dur="16" pname="e" oct="3" />
+                              <note xml:id="n2ms758" dur="16" pname="d" oct="3" />
+                              <note xml:id="n14t9815" dur="16" pname="c" oct="3" />
+                              <note xml:id="n11b4a3k" dur="16" pname="c" oct="3" />
+                              <note xml:id="n71qion" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1d097t1" dur="16" pname="d" oct="3" />
+                              <note xml:id="nkffvu8" dur="16" pname="g" oct="2" />
+                              <note xml:id="ntx8enk" dur="16" pname="g" oct="2" />
+                              <note xml:id="nswclkg" dur="16" pname="g" oct="3" />
+                              <note xml:id="n1n0n9m4" dur="16" pname="f" oct="3" />
+                              <note xml:id="n1vr086i" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1oow2mx" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1rmw644" dur="16" pname="g" oct="3" />
+                              <note xml:id="n1dh6f6o" dur="16" pname="f" oct="3" />
+                              <note xml:id="ni8m9xx" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1v11vbw" dur="16" pname="c" oct="3" />
+                              <note xml:id="nwp2xo7" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1pz5cp6" dur="16" pname="d" oct="3" />
+                              <note xml:id="n1n4w2xd" dur="16" pname="c" oct="3" />
+                              <note xml:id="nl6cfmi" dur="16" pname="c" oct="3" />
+                              <note xml:id="nvd0xax" dur="16" pname="g" oct="3" />
+                              <note xml:id="nr3z8e5" dur="16" pname="e" oct="3" />
+                              <note xml:id="nao4jxn" dur="16" pname="d" oct="3" />
+                              <note xml:id="n23nggv" dur="16" pname="d" oct="3" />
+                              <note xml:id="n9w9vq8" dur="16" pname="g" oct="3" />
+                              <note xml:id="nabn4ed" dur="16" pname="f" oct="3">
+                                 <accid xml:id="a1bny940" accid="s" />
+                              </note>
+                              <note xml:id="njfrvw8" dur="16" pname="g" oct="2" />
+                              <note xml:id="nqsymbe" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1fl8ugw" dur="16" pname="g" oct="3" />
+                              <note xml:id="n15preiw" dur="16" pname="f" oct="3">
+                                 <accid accid.ges="s" />
+                              </note>
+                              <note xml:id="n9anx5l" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1vff3lf" dur="16" pname="c" oct="3" />
+                              <note xml:id="nkbsbmy" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1p3hl74" dur="16" pname="d" oct="3" />
+                              <note xml:id="nx5l4bv" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1ugcvv0" dur="16" pname="c" oct="3" />
+                              <note xml:id="n18w0v6m" dur="16" pname="e" oct="3" />
+                              <note xml:id="n18aqqri" dur="16" pname="d" oct="3" />
+                              <note xml:id="n9nycne" dur="16" pname="f" oct="3">
+                                 <accid xml:id="a1gxs4p7" accid="n" />
+                              </note>
+                              <note xml:id="n15a0voy" dur="16" pname="f" oct="3" />
+                              <note xml:id="nwtu2ka" dur="16" pname="a" oct="3" />
+                              <note xml:id="nidoxty" dur="16" pname="g" oct="3" />
+                              <note xml:id="n1evuy7e" dur="16" pname="f" oct="3" />
+                              <note xml:id="n1d7vd66" dur="16" pname="f" oct="3" />
+                              <note xml:id="nqmrwae" dur="16" pname="a" oct="3" />
+                              <note xml:id="n1oy1or9" dur="16" pname="g" oct="3" />
+                              <note xml:id="nswpsmd" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1m18vxb" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1k3x3kc" dur="16" pname="g" oct="3" />
+                              <note xml:id="n1jbs6v4" dur="16" pname="f" oct="3" />
+                              <note xml:id="n16u4h89" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1b35hrk" dur="16" pname="e" oct="3" />
+                              <note xml:id="ngq4edo" dur="16" pname="g" oct="3" />
+                              <note xml:id="nsn45gj" dur="16" pname="f" oct="3" />
+                              <note xml:id="n10u682y" dur="16" pname="d" oct="3" />
+                              <note xml:id="n6sf8vh" dur="16" pname="d" oct="3" />
+                              <note xml:id="nr8dqd7" dur="16" pname="f" oct="3" />
+                              <note xml:id="nigmdwi" dur="16" pname="e" oct="3" />
+                              <note xml:id="nim7vqc" dur="16" pname="d" oct="3" />
+                              <note xml:id="np8yb50" dur="16" pname="d" oct="3" />
+                              <note xml:id="n5fwwkx" dur="16" pname="f" oct="3" />
+                              <note xml:id="nqtjjct" dur="16" pname="e" oct="3" />
+                              <note xml:id="nob7jol" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1x9w6rb" dur="16" pname="c" oct="3" />
+                              <note xml:id="n8bej1b" dur="16" pname="a" oct="2" />
+                              <note xml:id="n1qv4e9b" dur="16" pname="e" oct="3" />
+                              <note xml:id="n1q1cz0" dur="16" pname="c" oct="3" />
+                              <note xml:id="n112qiwd" dur="16" pname="c" oct="3" />
+                              <note xml:id="n18rrmxa" dur="16" pname="a" oct="2" />
+                              <note xml:id="n1bt1err" dur="16" pname="e" oct="3" />
+                              <note xml:id="n12y6yxg" dur="16" pname="g" oct="2" />
+                              <note xml:id="n198cshr" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1t67gcd" dur="16" pname="d" oct="3" />
+                              <note xml:id="n1f0q5a4" dur="16" pname="c" oct="3">
+                                 <accid xml:id="ap1ddvb" accid="s" />
+                              </note>
+                              <note xml:id="n1xbftfu" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1g1pnjn" dur="16" pname="g" oct="2" />
+                              <note xml:id="nrz6y1n" dur="16" pname="d" oct="3" />
+                              <note xml:id="n1ba0lwd" dur="16" pname="c" oct="3">
+                                 <accid accid.ges="s" />
+                              </note>
+                              <note xml:id="njbd9pz" dur="16" pname="a" oct="2" />
+                              <note xml:id="n1n2vr79" dur="16" pname="a" oct="2" />
+                              <note xml:id="nf1v93j" dur="16" pname="c" oct="3">
+                                 <accid xml:id="ab2zdvq" accid="n" />
+                              </note>
+                              <note xml:id="nwbxuhy" dur="16" pname="b" oct="2" />
+                              <note xml:id="n1dxac95" dur="16" pname="a" oct="2" />
+                              <note xml:id="n18lhwby" dur="16" pname="a" oct="2" />
+                              <note xml:id="n1m7w5rl" dur="16" pname="c" oct="3" />
+                              <note xml:id="n1xvqm5e" dur="16" pname="b" oct="2" />
+                              <note xml:id="ndjp9w2" dur="16" pname="a" oct="2" />
+                              <note xml:id="nywmvm9" dur="16" pname="a" oct="2" />
+                              <note xml:id="nwobcij" dur="16" pname="d" oct="3" />
+                              <note xml:id="nj0ihio" dur="16" pname="c" oct="3" />
+                              <note xml:id="nzf5274" dur="16" pname="a" oct="2" />
+                              <note xml:id="n1xd0tzf" dur="16" pname="a" oct="2" />
+                              <note xml:id="n1nsm9ge" dur="16" pname="d" oct="3" />
+                              <note xml:id="n1er8j72" dur="16" pname="c" oct="3" />
+                              <note xml:id="nhc1n03" dur="16" pname="g" oct="2" />
+                              <note xml:id="n7dl52s" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1o9dq9n" dur="16" pname="b" oct="2" />
+                              <note xml:id="nhv2ewf" dur="16" pname="a" oct="2" />
+                              <note xml:id="n1xbt5ml" dur="16" pname="g" oct="2" />
+                              <note xml:id="n14u2n4b" dur="16" pname="g" oct="2" />
+                              <note xml:id="n1brdlhu" dur="16" pname="b" oct="2" />
+                              <note xml:id="n1ibn0t3" dur="16" pname="a" oct="2" />
+                           </beam>
+                           <rest xml:id="r5tar2v" dur="long" />
+                           <rest xml:id="r2f7ce3" dur="long" />
+                           <rest xml:id="rgexlce" dur="long" />
+                           <rest xml:id="r1f3vqp3" dur="long" />
+                           <rest xml:id="r3u9ho5" dur="long" />
+                           <rest xml:id="r1rlwvo5" dur="long" />
+                        </layer>
+                     </staff>
+                  </measure>
+               </section>
+            </score>
+         </mdiv>
+      </body>
+   </music>
+</mei>

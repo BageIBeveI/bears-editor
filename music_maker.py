@@ -1,3 +1,7 @@
+# todo thingy: allow first note to be played later than instantly
+
+import os
+
 def main():
     delimiter = input("What delimiter should be used for separating note inputs? (e.g. a comma or a space, for C1,C2,"
                       "C3 or C1 C2 C3): ")
@@ -127,27 +131,35 @@ def main():
     notes = [[]] * 4
     note_lengths = [[]] * 4
 
-    while True:
-        print_menu()
-        user_choice = input("Make your choice  ..... : ").upper()
-        if user_choice == "1":
-            music_adder(notes, note_lengths, delimiter)
-        elif user_choice == "2":
-            music_deleter(notes, note_lengths)
-        elif user_choice == "3":
-            for i in range(4):
-                print(f"\n  Channel {i + 1}:")
-                print("Notes: ", notes[i])
-                print("Note Lengths: ", note_lengths[i])
-        elif user_choice == "4":
-            file_saver(notes, note_lengths)
-        elif user_choice == "5":
-            game_writer(notes, note_lengths, PITCH_TO_BYTE, frames_per_quarter_note)
-        elif user_choice == "6":
-            frames_per_quarter_note = file_loader(notes, note_lengths)
-        elif user_choice == "Q":
-            if input("Are you sure? Y to quit: ").upper() == "Y":
-                exit()
+    try:
+        while True:
+            print_menu()
+            user_choice = input("Make your choice  ..... : ").upper()
+            if user_choice == "1":
+                music_adder(notes, note_lengths, delimiter)
+            elif user_choice == "2":
+                music_deleter(notes, note_lengths)
+            elif user_choice == "3":
+                for i in range(4):
+                    print(f"\n  Channel {i + 1}:")
+                    print("Notes: ", notes[i])
+                    print("Note Lengths: ", note_lengths[i])
+            elif user_choice == "4":
+                name = ""
+                file_saver(notes, note_lengths, name)
+            elif user_choice == "5":
+                game_writer(notes, note_lengths, PITCH_TO_BYTE, frames_per_quarter_note)
+            elif user_choice == "6":
+                frames_per_quarter_note = file_loader(notes, note_lengths)
+            elif user_choice == "Q":
+                if input("Are you sure? Y to quit: ").upper() == "Y":
+                    exit()
+    except Exception:
+        i = 0
+        while os.path.exists(f"music_csv/temp{i}.csv"):
+            i += 1
+        file_saver(notes, note_lengths, f"temp{i}")
+        print("Crashed! Saved data to a temp file.")
 
 
 def print_menu():
@@ -175,7 +187,7 @@ def music_adder(notes, note_lengths, delimiter):
     stopper = True
     while stopper:
         try:
-            starting = int(input("Notes: At which index do you want to start? "))
+            starting = int(input("Notes: At which index do you want to start (first index is 0)? "))
             if starting < 0 or starting > len(notes[channel]):
                 raise IndexError
             stopper = False
@@ -209,9 +221,9 @@ def music_adder(notes, note_lengths, delimiter):
         except Exception:
             print("Invalid input.")
 
-        inputVar = input("Now enter the note lengths in terms of quarter "
-            "notes, (e.g. whole = 4,\ndot half = 3, quarter = "
-            "1, eighth = 0.5, triplet on a quarter = 0.33)\n"
+        inputVar = input("Now enter the note lengths in terms of whole notes "
+            "notes, (e.g. whole = 1,\ndot half = 1.5, quarter = "
+            "0.25, eighth = 0.125, triplet on a whole = 0.33)\n"
             "(and same #of inputs as last time.): "
             ).split(delimiter)
         if inputVar != [""]:
@@ -230,10 +242,18 @@ def deleterWithErrorHandling(noteser, lengthser, notes, note_lengths, channel):
         print(f"{len(notes[channel])} notes: ", notes[channel])
     if lengthser:
         print(f"{len(note_lengths[channel])} lengths: ", note_lengths[channel])
-    mus_index = input("\nWhich index do you want to delete (starts with 0)? (-1 to exit): ")
+    mus_index = input("\nWhich index do you want to delete (starts with 0)? (-1 to exit) (-20 for full wipe): ")
     while not mus_index.isnumeric() or int(mus_index) < 0 or (int(mus_index) >= len(notes[channel]) and noteser == True) or (int(mus_index) >= len(note_lengths[channel]) and lengthser == True):
         if mus_index == "-1":
             return -1
+        if mus_index == "-20":
+            if noteser:
+                notes[channel] = ['a']
+                print(f"Channel {channel} notes wiped.")
+            if lengthser:
+                note_lengths[channel] = ['a']
+                print(f"Channel {channel} lengths wiped.")
+            return 0
         print("Invalid input (either not a number, or out of bounds. There are ", end="")
         if noteser:
             print(f"{len(notes[channel])} notes", end="")
@@ -296,13 +316,16 @@ def music_deleter(notes, note_lengths):
     print("note_lengths: ", note_lengths[channel])
 
 
-def file_saver(notes, note_lengths):
-    print("Make sure your notes and lengths are all allowed values before saving! If you want to be safe, save this to a CSV file first.")
-    name = input("Enter a filename (in music_csv/) (.csv file format assumed, so don't type it) (leave empty to skip): ")
+def file_saver(notes, note_lengths, name):
+    if name == "":
+        print("Make sure your notes and lengths are all allowed values before saving! If you want to be safe, save this to a CSV file first.")
+        name = input("Enter a filename (in music_csv/) (.csv file format assumed, so don't type it) (leave empty to skip): ")
     if name != "":
         try:
+            print(name)
             with open(f"music_csv/{name}.csv", "w") as file:
                 for channel in range(0, 4):
+
                     try:
                         file.write(notes[channel][0])
                     except IndexError:
@@ -326,6 +349,7 @@ def file_saver(notes, note_lengths):
                 file.write("end")
         except Exception:
             print("File not found.")
+            return
         print("Save successful.")
     return
 
@@ -404,11 +428,17 @@ def game_writer(notes, note_lengths, P2B, FPQ):
                     # take the current note, convert it to a number (the byte as an integer) (via the dict), add whatever
                     # transposition is needed, then convert to a byte and add it to the music file
                     if channel in (2, 3):
-                        temp_bytes += (P2B[curr_note_channel[i].upper()] + transpose).to_bytes(1)
+                        try:
+                            temp_bytes += (P2B[curr_note_channel[i].upper()] + transpose).to_bytes(1)
+                        except Exception:
+                            print(f"Bad value in channel {channel}: {curr_note_channel[i].upper()}. Value has been skipped")
                     # this one's different because the big dictionary maps pitches too low for these channels (it works fine for
                     # bass, but here, it needs to go down an octave)
                     else:
-                        temp_bytes += (P2B[curr_note_channel[i].upper()] + transpose - 12).to_bytes(1)
+                        try:
+                            temp_bytes += (P2B[curr_note_channel[i].upper()] + transpose - 12).to_bytes(1)
+                        except Exception:
+                            print(f"Bad value in channel {channel}: {curr_note_channel[i].upper()}. Value has been skipped")
 
                     #not changeable for now, since idk what 64 does, and effects have different... effects depending on channel
                     temp_bytes += b'\x64\x30'
@@ -434,8 +464,10 @@ def game_writer(notes, note_lengths, P2B, FPQ):
             gamefile.write(temp_bytes)
             gamefile.close()
             print("Done!")
-    except Exception:
-        print("File not found.")
+    except IOError:
+        print("File error.")
+    #except Exception:
+    #    print("File not found.")
 
     # as one extra comment, some edge cases can happen if you choose no loops & leave some channels
     # empty, but i don't think it'd be worth fixing, so it shall stay like that.

@@ -8,6 +8,7 @@ import glob
 from PIL import Image
 import os
 import tkinter
+from enum import Enum
 
 #  pygame initializer
 pygame.init()
@@ -48,8 +49,12 @@ allLevelTileCSVs = []
 
 inventoryIndex = 0
 
-effectsOn = 0
-programMode = 0
+effectsOn = False
+
+class programModes(Enum):
+    courseEditor = 0
+    subtileDrawer = 1
+programMode = programModes.courseEditor
 
 clock = pygame.time.Clock()
 
@@ -62,8 +67,11 @@ bearsCourseCameras = [[0x60, 0x46, 0x14], [0x60, 0x50, 0x50], [0x60, 0x60, 0x46]
 selectOrigCoords = []
 stampArr = [[0]]
 
-drawMode = 0
-
+class drawModes(Enum):
+    draw = 0
+    bucket = 1
+    stamp = 2
+drawMode = drawModes.draw
 
 # various mode 1 or both
 hexCodes = [[100, 0, 0]] * 0x20
@@ -158,7 +166,7 @@ LONG_PALETTE_OFFSETS = [0xFA64E, 0xEA61E, 0xF6731, (0xE86D6, 0xEA060, 0xEA0AA, 0
 
 LONG_GRAPHICS_LENGTHS = [0x1550, 0x1270, 0x10A0, 0x1940, 0xA00, 0xB60, (0xFA0, 0xBD0, 0xD00, 0xDB0, 0xF60, 0xBD0, 0xCE0, 0xD60, 0x11D0, 0xD70), 0xEF0, (0x990, 0x900, 0xF90)]
 
-SPRITES = ["moving", "a trick", "b trick", "a up left trick", "b up left trick", "a up right trick", "b up right trick", "left side ramp", "right side ramp", "ramp jump", "mud", "puddle", "ice", "whirlpool", "wipeout", "slowing", "stopped", "HUD difficulties", "HUD sports", "medal", "5x5 selectangle", "4x3 selectangle", "course bigtile", "dev/publisher credit intro", "cool brother bear biking intro", "car intro", "various menu items", "font 1", "font 2", "course intro", "scoreboard", "podium finish"]
+SPRITES = ["moving", "a trick", "b trick", "a up left trick", "b up left trick", "a up right trick", "b up right trick", "left side ramp", "right side ramp", "ramp jump", "mud", "puddle", "ice", "whirlpool", "wipeout", "slowing", "stopped", "HUD difficulties", "HUD sports", "medal", "5x5 selectangle", "4x3 selectangle", "course bigtile", "dev&publisher credit intro", "cool brother bear biking intro", "car intro", "various menu items", "font 1", "font 2", "course intro", "scoreboard", "podium finish"]
 BEARTYPES = ["brother", "sister"]
 spriteType = 22
 loadedSpriteType = 22
@@ -248,7 +256,12 @@ sportTypeButtons = []
 sportDifficultyButtons = []
 tileInvButtons = []
 
-
+"""
+hzSportPos = [560, 704, 560, 704, 560, 704]
+hzSportPosShift = [360, 320, 360, 320, 360, 320]
+vtSportPos = [45, 45, 90, 90, 135, 135]
+vtSportPosShift = 360
+"""
 def sportTypeButtonMover(mode):
     global sportTypeButtons
     sportTypeButtons = []
@@ -258,13 +271,39 @@ def sportTypeButtonMover(mode):
     sportTypeButtons.append(button.Button(704 + (320 * mode), 90 + 360 * mode, KAYAK_IMAGE, 2))
     sportTypeButtons.append(button.Button(560 + (360 * mode), 135 + 360 * mode, BIKE_IMAGE, 2))
     sportTypeButtons.append(button.Button(704 + (320 * mode), 135 + 360 * mode, DIRTBOARD_IMAGE, 2))
+    """ tbh idk which is more readable, think i prefer the old way?
+    sportImages = [TOBOGGAN_IMAGE, SLED_IMAGE, RAFT_IMAGE, KAYAK_IMAGE, BIKE_IMAGE, DIRTBOARD_IMAGE]
+    sportButtonScale = 2
+    for i in range(6):
+        sportTypeButtons.append(button.Button(
+            hzSportPos[i] + (hzSportPosShift[i] * mode),
+            vtSportPos[i] + (vtSportPosShift * mode),
+            sportImages[i],
+            sportButtonScale)
+        )
+    """
 
 
 sportTypeButtonMover(0)
 
+# same readability question as earlier
 sportDifficultyButtons.append(button.Button(550, 190, BEGINNER_IMAGE, 2))
 sportDifficultyButtons.append(button.Button(640, 190, INTERMEDIATE_IMAGE, 2))
 sportDifficultyButtons.append(button.Button(730, 190, EXPERT_IMAGE, 2))
+
+"""
+hzDifficultyPos = [550, 640, 730]
+vtDifficultyPos = 190
+difficultyImages = [BEGINNER_IMAGE, INTERMEDIATE_IMAGE, EXPERT_IMAGE]
+difficultyButtonScale = 2
+for i in range(3):
+    sportDifficultyButtons.append(button.Button(
+        hzDifficultyPos[i],
+        vtDifficultyPos,
+        difficultyImages[i],
+        difficultyButtonScale)
+    )
+"""
 
 GRID_BUTTON = button.Button(710, 10, GRID_IMAGE, 1)
 SAVE_BUTTON = button.Button(750, 10, SAVE_IMAGE, 1)
@@ -328,11 +367,16 @@ def checkerer():
 for sport in range(6):
     tempCSVPair = []
     for difficulty in range(3):
+        # loads every csv of the default maps
         tempCSVRead = re.split(",|\n", open(f"levels/{SPORTS[sport]}{DIFFICULTIES[difficulty]}.csv", "r").read())
+
         # sportHeights[sport][difficulty] = int(tempCSVRead[0])
         # bearsCourseHorizontalSpawns[sport][difficulty] = int(tempCSVRead[1])
         # bearsCourseCameras[sport][difficulty] = int(tempCSVRead[2]) already loaded in, but i'll keep it
+
+        # reads data in said csv files (first 16 bytes are non-tile data)
         tempCSV = [int(byte) for byte in tempCSVRead[16:-1]]
+        # fill rest with FF
         tempCSV += ([0xFF] * ((MAX_SPORT_HEIGHTS[sport][difficulty] * 0x10) - len(tempCSV)))
         tempCSVPair.append(tempCSV)
     allLevelTileCSVs.append(tempCSVPair)
@@ -341,7 +385,6 @@ for sport in range(6):
 # tile images (they change depending on the sport type)
 def tileImageStorer(sport):
     sportTileLists = []
-
     tileList = []
     for i in range(NUMBER_OF_TILES):
         tile = pygame.image.load(
@@ -414,34 +457,27 @@ def loadLevel(name, sportType, sportDifficulty):
         allLevelTileCSVs[sportType][sportDifficulty] = liszt
         liszt += ([0xFF] * ((MAX_SPORT_HEIGHTS[sportType][sportDifficulty] * 0x10) - len(liszt)))
 
-
-def paint(X, Y, tile, startTile):
-    global sportType
-    global sportDifficulty
-    global allLevelTileCSVs
-    global sportHeights
+# iterative flood fill
+def paint(X, Y, tile, startTile, currentMapTiles, currentMapHeight):
+    # big queue of coordinates to check for filling
     tileQueue = [[X, Y]]
-    allLevelTileCSVs[sportType][sportDifficulty][X + Y * 16] = tile
+    currentMapTiles[X + Y * 16] = tile
     while tileQueue != []:
         x = tileQueue[0][0]
         y = tileQueue[0][1]
         tileQueue = tileQueue[1:]
-        if x > 0 and allLevelTileCSVs[sportType][sportDifficulty][x - 1 + y * 16] == startTile:
-            # paint(x-1, y, tile, startTile)
-            allLevelTileCSVs[sportType][sportDifficulty][x - 1 + y * 16] = tile
+        if x > 0 and currentMapTiles[x - 1 + y * 16] == startTile:
+            currentMapTiles[x - 1 + y * 16] = tile
             tileQueue.append([x - 1, y])
-        if x < 15 and allLevelTileCSVs[sportType][sportDifficulty][x + 1 + y * 16] == startTile:
-            # paint(x+1, y, tile, startTile)
+        if x < 15 and currentMapTiles[x + 1 + y * 16] == startTile:
             tileQueue.append([x + 1, y])
-            allLevelTileCSVs[sportType][sportDifficulty][x + 1 + y * 16] = tile
-        if y > 0 and allLevelTileCSVs[sportType][sportDifficulty][x + (y - 1) * 16] == startTile:
-            # paint(x, y-1, tile, startTile)
+            currentMapTiles[x + 1 + y * 16] = tile
+        if y > 0 and currentMapTiles[x + (y - 1) * 16] == startTile:
             tileQueue.append([x, y - 1])
-            allLevelTileCSVs[sportType][sportDifficulty][x + (y - 1) * 16] = tile
-        if y < sportHeights[sportType][sportDifficulty] - 1 and allLevelTileCSVs[sportType][sportDifficulty][x + (y + 1) * 16] == startTile:
-            # paint(x, y+1, tile, startTile)
+            currentMapTiles[x + (y - 1) * 16] = tile
+        if y < currentMapHeight - 1 and currentMapTiles[x + (y + 1) * 16] == startTile:
             tileQueue.append([x, y + 1])
-            allLevelTileCSVs[sportType][sportDifficulty][x + (y + 1) * 16] = tile
+            currentMapTiles[x + (y + 1) * 16] = tile
     return
 
 
@@ -1296,17 +1332,17 @@ while running:
 
     # mode changing buttons
     if COURSE_EDITOR_BUTTON.draw(SCREEN):
-        programMode = 0
+        programMode = programModes.courseEditor
         sportTypeButtonMover(programMode)
     if TILE_EDITOR_BUTTON.draw(SCREEN):
-        programMode = 1
+        programMode = programModes.subtileDrawer
         sportTypeButtonMover(programMode)
         spriteType = spriteCheck(sportType, spriteType)
 
     # info mode, stops other modes to make things a bit quicker
     if infoMode:
         pygame.event.get()
-        if programMode == 0:
+        if programMode == programModes.courseEditor:
             SCREEN.blit(INFO_IMAGES[0], (0, 0))
         elif loadedSpriteType == 22:
             SCREEN.blit(INFO_IMAGES[1], (0, 0))
@@ -1330,7 +1366,7 @@ while running:
     #
     # COURSE EDITOR MODE (for editing course layout)
     #
-    elif programMode == 0:
+    elif programMode == programModes.courseEditor:
 
         # event handler
         for event in pygame.event.get():
@@ -1459,9 +1495,9 @@ while running:
         if EFFECTS_BUTTON.draw(SCREEN):
             if buttonWait == 0:
                 if effectsOn:
-                    effectsOn = 0
+                    effectsOn = False
                 else:
-                    effectsOn = 1
+                    effectsOn = True
                 imageList[sportType] = tileImageStorer(SPORTS[sportType])
                 buttonWait = (frameseys+1)//8
             else:
@@ -1651,15 +1687,16 @@ while running:
         mouseY = (mouseY - scroll) // (gridTileWidth)
 
         if VERTICAL_LINE_COUNT > mouseX >= 0 and mouseY < sportHeights[sportType][sportDifficulty]:
+            mouseOverTile = allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16]
             if pygame.mouse.get_pressed()[0] == 1:
-                if drawMode == 0 and allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] != chosenTile:
-                    allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] = chosenTile
-                elif drawMode == 1 and allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] != chosenTile:
-                    paint(mouseX, mouseY, chosenTile, allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16])
-                elif drawMode == 2:
+                if drawMode == drawModes.draw and mouseOverTile != chosenTile:
+                    mouseOverTile = chosenTile
+                elif drawMode == drawModes.bucket and mouseOverTile != chosenTile:
+                    paint(mouseX, mouseY, chosenTile, mouseOverTile, allLevelTileCSVs[sportType][sportDifficulty], sportHeights[sportType][sportDifficulty])
+                elif drawMode == drawModes.stamp:
                     stamp(mouseX, mouseY, stampArr)
-            elif pygame.mouse.get_pressed()[1] == 1 and allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] != chosenTile:
-                chosenTile = allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16]
+            elif pygame.mouse.get_pressed()[1] == 1 and mouseOverTile != chosenTile:
+                chosenTile = mouseOverTile
                 tileInvPictures[inventoryIndex] = chosenTile
             elif pygame.mouse.get_pressed()[2] == 1:
                 if selectOrigCoords == []:
@@ -1678,11 +1715,11 @@ while running:
 
         # buttons for drawing mode
         if PENCIL_BUTTON.draw(SCREEN):
-            drawMode = 0
+            drawMode = drawModes.draw
         if BUCKET_BUTTON.draw(SCREEN):
-            drawMode = 1
+            drawMode = drawModes.bucket
         if STAMP_BUTTON.draw(SCREEN):
-            drawMode = 2
+            drawMode = drawModes.stamp
         # and highlight selected
         modangle = pygame.rect = (870 + drawMode * 40, 50, 32, 32)
         pygame.draw.rect(SCREEN, (255, 0, 0), modangle, 1)
@@ -1698,7 +1735,7 @@ while running:
     #
     # SUBTILE PAINT MODE AND BIGTILE CONSTRUCTOR MODE
     #
-    elif programMode == 1:
+    elif programMode == programModes.subtileDrawer:
 
         if SUBTILE_EDITOR_BUTTON.draw(SCREEN):
             subtileMode = True
