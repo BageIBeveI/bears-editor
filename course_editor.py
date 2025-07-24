@@ -4,11 +4,16 @@ import pygame
 import button
 import csv
 import re
-import glob
-from PIL import Image
+import glob  # todo: to be deleted when bmp_png is finished
+from PIL import Image  # i accept any apologies past me owes me though. guaug is not a descriptive array name y'know...
 import os
-import tkinter
 from enum import Enum
+import sys
+
+sys.path.append("/course_editor_functions/")
+sys.path.append("/subtile_editor_functions/")
+import course_editor_functions
+import subtile_editor_functions
 
 #  pygame initializer
 pygame.init()
@@ -54,7 +59,7 @@ effectsOn = False
 class programModes(Enum):
     courseEditor = 0
     subtileDrawer = 1
-programMode = programModes.courseEditor
+programMode = programModes.courseEditor.value
 
 clock = pygame.time.Clock()
 
@@ -71,7 +76,7 @@ class drawModes(Enum):
     draw = 0
     bucket = 1
     stamp = 2
-drawMode = drawModes.draw
+drawMode = drawModes.draw.value
 
 # various mode 1 or both
 hexCodes = [[100, 0, 0]] * 0x20
@@ -83,7 +88,11 @@ subtileSelected = 0
 colourSelected = 0
 paletteSelected = 0
 subtileMode = True
-colours = [[255, 219, 182], [102, 102, 102], [129, 212, 26], [180, 199, 220], [255, 166, 166], [107, 94, 155], [129, 172, 166], [129, 55, 9], [52, 101, 164], [255, 128, 0], [120, 3, 115], [21, 132, 102], [241, 13, 12], [34, 75, 18], [172, 178, 12]]
+colours = [[255, 219, 182], [102, 102, 102], [129, 212, 26],
+           [180, 199, 220], [255, 166, 166], [107, 94, 155],
+           [129, 172, 166], [129, 55, 9], [52, 101, 164],
+           [255, 128, 0], [120, 3, 115], [21, 132, 102],
+           [241, 13, 12], [34, 75, 18], [172, 178, 12]]
 COLLISION_COLOUR_MAPPER = {0x00: 0,
                            0x02: 1,
                            0x03: 2,
@@ -132,8 +141,10 @@ BIGTILE_COLLISION_OFFSETS = [0x4D6C, 0x8DCD, 0xCCE1, 0x10DAA, 0x14EF1, 0x19031]
 SUBTILE_GRAPHICS_OFFSETS = [0x5976, 0x99D7, 0xD8EB, 0x119B4, 0x15AFB, 0x19C3B]
 SUBTILE_GRAPHICS_LENGTHS = [0x1EA0, 0x1DC0, 0x1FA0, 0x1FD0, 0x1F70, 0x1900]
 
-# spritey stuff:
-BROBEAR_SPRITE_OFFSETS = [[],
+# spritey stuff. each row represents a sport
+# accessed like BROBEAR_SPRITE_OFFSETS.sporttype.spritetype.layer
+# wonder if there's a nice structy way to organize this?
+BROBEAR_SPRITE_OFFSETS = [[], # toboggan brobear means nothing since family sport
 [(0x20000, 0x21128), (0x9C000, 0x9C69E, 0x9CB4F), (0x9EBD5, 0x9F384, 0x9F8BE), (0x9CF56, 0x9D62B, 0x9DABE), (0xA110D, 0xA1BF6, 0xA21A0), (0x9DE3C, 0x9E52E, 0x9E7BE), (0xA0000, 0xA068C, 0xA0A5F), (0x21D65, 0x220C5), (), (0x21BF4, 0x21CD7, 0x236A3), (), (), (0x222D1, 0x22E30), (), ([0x24000, 0x2496E], [0x25034, 0x2627E]), (), ()],
 [],
 [(0x4E1B4, 0x4F282), (0xA2D00, 0xA3630), (0xA6536, 0xA709A), (0xA4000, 0xA493B, 0xA4DD0), (0xA8D7C, 0xA9137, 0xA936B), (0xA5769, 0xA6089), (0xA8000, 0xA8977), (), (), (0x139CE, 0x13A69, 0x13AE2), (), (), (), (0x916F6, 0x9223D), ([0x90000, 0x90976], [0x90D36, 0x91359]), ()],
@@ -152,24 +163,83 @@ FAMILYBEAR_SPRITE_OFFSETS = [[(0x1C000, 0x1D08F, 0x1DB5B), (0xA970E, 0xAA4F8, 0x
 [],
 [([0x80000, 0x80C78, 0x81360], [0x81B14, 0x82B1E, 0x83253], [0xC8000, 0xC8E3F, 0xC93BA]), (0xBDD31, 0xBEA18, 0xBF127), (0xBC000, 0xBCE94, 0xBD73F), (0xBA2DF, 0xBAB5B, 0xBB162, 0xBB4B0), (0xB8000, 0xB8CB8, 0xB9541, 0xB9A78), (0xB4000, 0xB4676, 0xB4AFF), (0xB4E89, 0xB56C0, 0xB5BE9), (), (), (0xF8D5, 0xF9FC, 0xFA8A, 0xFAF6), (), (), (), (0x85B45, 0x86CB0, 0x87821), ([0x88000, 0x889CE, 0x88FC2], [0x894B7, 0x89FDF, 0x8A5A6]), (), ()]]
 
+# sprite palettes per level
 BRO_OBJ_PALETTE_OFFSETS = [0, 0x210E8, 0, 0x4F242, 0x8CEEE, 0xCAE18]
 SIS_OBJ_PALETTE_OFFSETS = [0, 0xC123C, 0, 0xC508E, 0xC2F44, 0xC6CAF]
 FAMILY_OBJ_PALETTE_OFFSETS = [0x1D04F, 0, 0x80C38]
 
+# hud up to selectangles
 MORE_SPRITEISH_OFFSETS = [0x7A787, 0x7A7C4, 0xE52AA, 0xEA25C, 0xEA17E]
-
 MORE_PALETTEY_OFFSETS = ['OBJ', 'OBJ', 0xE5967, 0xEA21C, 0xEA21C]
 
+# dev&publisher credit intro, cool brother bear biking intro, car intro, various menu items, font 1, font 2, course intros, scoreboard, podium finish]
 LONG_GRAPHICS_OFFSETS = [0xFA144, 0xEA344, 0xF6167, 0xE8000, 0x79073, 0x79BFD, (0xED4EA, 0xF108A, 0xF4153, 0xF8000, 0xEE7A4, 0xF1F74, 0xF516D, 0xF90CA, 0xEC000, 0xF0000), 0x46A14, (0xE59A7, 0xE6819, 0xE4000)]
-
 LONG_PALETTE_OFFSETS = [0xFA64E, 0xEA61E, 0xF6731, (0xE86D6, 0xEA060, 0xEA0AA, 0xEA0F4, 0xEA13E), 0x791BD, 0x79D47, (0xED7C4, 0xF1364, 0xF442D, 0xF82DA, 0xEEA7E, 0xF224E, 0xF5447, 0xF93A4, 0xEC2DA, 0xF02DA), (0x4705E, 0x47F98), (0xE5E49, 0xE6CBB, 0xE42DA)]
-
 LONG_GRAPHICS_LENGTHS = [0x1550, 0x1270, 0x10A0, 0x1940, 0xA00, 0xB60, (0xFA0, 0xBD0, 0xD00, 0xDB0, 0xF60, 0xBD0, 0xCE0, 0xD60, 0x11D0, 0xD70), 0xEF0, (0x990, 0x900, 0xF90)]
+
+class courseIntros(Enum):
+    broSled = 0
+    broKayak = 1
+    broBike = 2
+    broDirtboard = 3
+    sisSled = 4
+    sisKayak = 5
+    sisBike = 6
+    sisDirtboard = 7
+    raft = 8
+    toboggan = 9
 
 SPRITES = ["moving", "a trick", "b trick", "a up left trick", "b up left trick", "a up right trick", "b up right trick", "left side ramp", "right side ramp", "ramp jump", "mud", "puddle", "ice", "whirlpool", "wipeout", "slowing", "stopped", "HUD difficulties", "HUD sports", "medal", "5x5 selectangle", "4x3 selectangle", "course bigtile", "dev&publisher credit intro", "cool brother bear biking intro", "car intro", "various menu items", "font 1", "font 2", "course intro", "scoreboard", "podium finish"]
 BEARTYPES = ["brother", "sister"]
-spriteType = 22
-loadedSpriteType = 22
+
+class sprites(Enum):
+    moving = 0
+    aTrick = 1
+    bTrick = 2
+    aUpLeftTrick = 3
+    bUpLeftTrick = 4
+    aUpRightTrick = 5
+    bUpRightTrick = 6
+    rampLeft = 7
+    rampRight = 8
+    rampJump = 9
+    mud = 10
+    puddle = 11
+    ice = 12
+    whirlpool = 13
+    wipeout = 14
+    slowing = 15
+    stopped = 16
+
+    hudDifficulties = 17
+    hudSports = 18
+    medal = 19
+    selectangle5x5 = 20
+    selectangle4x3 = 21
+
+    courseBigtile = 22
+
+    devPublisherCreditIntro = 23
+    coolBrotherBearBikingIntro = 24
+    carIntro = 25
+    variousMenuItems = 26
+    font1 = 27
+    font2 = 28
+    courseIntro = 29
+    scoreboard = 30
+    podiumFinish = 31
+
+spriteType = sprites.courseBigtile.value
+loadedSpriteType = sprites.courseBigtile.value
+
+# perhaps a jank way to do this? see above enum for mapping details, but basically:
+#     bigger sprites take up the whole screen (and they have a 10 byte GRAPHICINTRO)
+#     course bigtiles are kinda weird, so they have a separate process
+#     anything else is a smaller sprite (they have 7 byte GRAPHICINTROs)
+# this is just a kinda abstracted way to try to get rid of all the magic nums, even if they're a lil magic here
+smallerSprites = range(0, 22)
+biggerSprites = range(23, 32)
+
 bearType = 0
 loadedBearType = 0
 loadedSportType = 0
@@ -262,16 +332,16 @@ hzSportPosShift = [360, 320, 360, 320, 360, 320]
 vtSportPos = [45, 45, 90, 90, 135, 135]
 vtSportPosShift = 360
 """
-def sportTypeButtonMover(mode):
-    global sportTypeButtons
-    sportTypeButtons = []
+
+def sportTypeButtonMover(mode, sportTypeButtons):
+    sportTypeButtons.clear()
     sportTypeButtons.append(button.Button(560 + (360 * mode), 45 + 360 * mode, TOBOGGAN_IMAGE, 2))
     sportTypeButtons.append(button.Button(704 + (320 * mode), 45 + 360 * mode, SLED_IMAGE, 2))
     sportTypeButtons.append(button.Button(560 + (360 * mode), 90 + 360 * mode, RAFT_IMAGE, 2))
     sportTypeButtons.append(button.Button(704 + (320 * mode), 90 + 360 * mode, KAYAK_IMAGE, 2))
     sportTypeButtons.append(button.Button(560 + (360 * mode), 135 + 360 * mode, BIKE_IMAGE, 2))
     sportTypeButtons.append(button.Button(704 + (320 * mode), 135 + 360 * mode, DIRTBOARD_IMAGE, 2))
-    """ tbh idk which is more readable, think i prefer the old way?
+    """ tbh idk which is more readable, but i think i prefer the old way?
     sportImages = [TOBOGGAN_IMAGE, SLED_IMAGE, RAFT_IMAGE, KAYAK_IMAGE, BIKE_IMAGE, DIRTBOARD_IMAGE]
     sportButtonScale = 2
     for i in range(6):
@@ -284,7 +354,7 @@ def sportTypeButtonMover(mode):
     """
 
 
-sportTypeButtonMover(0)
+sportTypeButtonMover(0, sportTypeButtons)
 
 # same readability question as earlier
 sportDifficultyButtons.append(button.Button(550, 190, BEGINNER_IMAGE, 2))
@@ -457,596 +527,230 @@ def loadLevel(name, sportType, sportDifficulty):
         allLevelTileCSVs[sportType][sportDifficulty] = liszt
         liszt += ([0xFF] * ((MAX_SPORT_HEIGHTS[sportType][sportDifficulty] * 0x10) - len(liszt)))
 
-# iterative flood fill
-def paint(X, Y, tile, startTile, currentMapTiles, currentMapHeight):
-    # big queue of coordinates to check for filling
-    tileQueue = [[X, Y]]
-    currentMapTiles[X + Y * 16] = tile
-    while tileQueue != []:
-        x = tileQueue[0][0]
-        y = tileQueue[0][1]
-        tileQueue = tileQueue[1:]
-        if x > 0 and currentMapTiles[x - 1 + y * 16] == startTile:
-            currentMapTiles[x - 1 + y * 16] = tile
-            tileQueue.append([x - 1, y])
-        if x < 15 and currentMapTiles[x + 1 + y * 16] == startTile:
-            tileQueue.append([x + 1, y])
-            currentMapTiles[x + 1 + y * 16] = tile
-        if y > 0 and currentMapTiles[x + (y - 1) * 16] == startTile:
-            tileQueue.append([x, y - 1])
-            currentMapTiles[x + (y - 1) * 16] = tile
-        if y < currentMapHeight - 1 and currentMapTiles[x + (y + 1) * 16] == startTile:
-            tileQueue.append([x, y + 1])
-            currentMapTiles[x + (y + 1) * 16] = tile
-    return
-
-
-def stamp(X, Y, stamp):
-    global sportType
-    global sportDifficulty
-    global allLevelTileCSVs
-    global sportHeights
-    height = min(sportHeights[sportType][sportDifficulty] - Y, len(stamp))
-    length = min(16 - X, len(stamp[0]))
-    for i in range(height):
-        for j in range(length):
-            allLevelTileCSVs[sportType][sportDifficulty][X + j + (Y + i) * 16] = stamp[i][j]
-    return
-
 
 ##tile editor funcs
-# loading in subtiles as images, for subtile mode
-def loadSubtileData(sport):
-    global frameCount
-    global spriteHeight
-    global spriteWidth
-    global quadrantPixel
-    frameCount = 256
-    spriteHeight = [2]
-    spriteWidth = [2]
-    quadrantPixel = 15
+# idk if these are more or less of an affront to the senses tbh. this feels like the right thing to do though?
+# i think it's fine to do global stuff like this but i might just have remade the same problem as before? idk
+def loadCourseTiles():
+    global lockFileName
+    global lockedFileName
+    global sportType
+    global SUBTILE_GRAPHICS_LENGTHS
+    global SUBTILE_GRAPHICS_OFFSETS
+    global BIGTILE_COLLISION_OFFSETS
+
+    returnVals = subtile_editor_functions.subtile_mode_game_loaders.\
+        loadCourseBigtileData(lockFileName, lockedFileName, sportType, SUBTILE_GRAPHICS_LENGTHS,
+                              SUBTILE_GRAPHICS_OFFSETS, BIGTILE_COLLISION_OFFSETS)
+
+    # first bool checks that everything went well. if so then update stuff
+    if returnVals[0] == 1:
+        # think this is ok. feels cleaner than returning everything another time
+        global frameCount
+        global spriteHeight
+        global spriteWidth
+        global quadrantPixel
+        global loadedSpriteType
+        global loadedSportType
+        global layerChosen
+        global eyeMode
+        global EYE_BUTTON
+        global EYE_IMAGES
+        global bigtileCollisions
+        global spriteSubtiles
+        global spritePalettes
+        global subtileGraphics
+        global hexCodes
+
+        frameCount = 256
+        spriteHeight = [2]
+        spriteWidth = [2]
+        quadrantPixel = 15
+        loadedSpriteType = sprites.courseBigtile.value
+        loadedSportType = sportType
+        layerChosen = 0
+        eyeMode = False
+        EYE_BUTTON = button.Button(856, 395, EYE_IMAGES[0], 1)
+        bigtileCollisions = returnVals[1]
+        spriteSubtiles = returnVals[2]
+        spritePalettes = returnVals[3]
+        subtileGraphics = returnVals[4]
+        hexCodes = returnVals[5]
+
+    # full wipe?
+    """
+    elif returnVals[0] == 2:
+        frameCount = 256
+        spriteHeight = [2]
+        spriteWidth = [2]
+        quadrantPixel = 15
+        loadedSpriteType = 22
+        loadedSportType = sport
+        layerChosen = 0
+    """
+
+def loadSmallGraphics():
+    global lockFileName
+    global lockedFileName
+    global sportType
+    global spriteType
+    global bearType
+    global sprites
+    global FAMILYBEAR_SPRITE_OFFSETS
+    global FAMILY_OBJ_PALETTE_OFFSETS
+    global BROBEAR_SPRITE_OFFSETS
+    global BRO_OBJ_PALETTE_OFFSETS
+    global SISBEAR_SPRITE_OFFSETS
+    global SIS_OBJ_PALETTE_OFFSETS
+    global MORE_SPRITEISH_OFFSETS
+    global MORE_PALETTEY_OFFSETS
+    returnVals = subtile_editor_functions.subtile_mode_game_loaders.\
+        loadSmallGraphicsData(lockFileName, lockedFileName,
+                              sportType, spriteType, bearType, sprites,
+                              FAMILYBEAR_SPRITE_OFFSETS, FAMILY_OBJ_PALETTE_OFFSETS, BROBEAR_SPRITE_OFFSETS,
+                              BRO_OBJ_PALETTE_OFFSETS, SISBEAR_SPRITE_OFFSETS, SIS_OBJ_PALETTE_OFFSETS,
+                              MORE_SPRITEISH_OFFSETS, MORE_PALETTEY_OFFSETS)
+
+    # first bool checks that everything went well. if so then update stuff
+    if returnVals[0] == 1:
+        # think this is ok. feels cleaner than returning everything another time
+        global loadedSpriteType
+        global loadedSportType
+        global loadedBearType
+        global quadrantPixel
+        global frameCount
+        global groupNum
+        global layers
+        global spriteSubtiles
+        global spritePalettes
+        global subtileGraphics
+        global hexCodes
+        global spriteWidth
+        global spriteHeight
+
+        loadedSpriteType = spriteType
+        loadedSportType = sportType
+        loadedBearType = bearType
+        quadrantPixel = 15
+        frameCount = returnVals[1]
+        groupNum = returnVals[2]
+        layers = returnVals[3]
+        spriteSubtiles = returnVals[4]
+        spritePalettes = returnVals[5]
+        subtileGraphics = returnVals[6]
+        hexCodes = returnVals[7]
+        spriteHeight = returnVals[8]
+        spriteWidth = returnVals[9]
+
+def loadBigGraphics():
+    global lockFileName
+    global lockedFileName
+    global sportType
+    global bearType
+    global sprites
+    global courseIntros
+    global spriteType
+    global LONG_GRAPHICS_OFFSETS
+    global LONG_PALETTE_OFFSETS
+    global LONG_GRAPHICS_LENGTHS
+
+    returnVals = subtile_editor_functions.subtile_mode_game_loaders.\
+        loadBigGraphicsData(lockFileName, lockedFileName, sportType, bearType, sprites, courseIntros, spriteType,
+                            LONG_GRAPHICS_OFFSETS, LONG_PALETTE_OFFSETS, LONG_GRAPHICS_LENGTHS)
+
+    # first bool checks that everything went well. if so then update stuff
+    if returnVals[0] == 1:
+        # think this is ok. feels cleaner than returning everything another time
+        global loadedSpriteType
+        global loadedSportType
+        global loadedBearType
+        global frameCount
+        global quadrantPixel
+        global layers
+        global loadedMenuPagePalette
+        global spriteSubtiles
+        global spritePalettes
+        global subtileGraphics
+        global hexCodes
+        global spriteHeight
+        global spriteWidth
+
+        loadedSpriteType = spriteType
+        loadedSportType = sportType
+        loadedBearType = bearType
+        frameCount = 1
+        quadrantPixel = 2
+        layers = 1
+        loadedMenuPagePalette = returnVals[1]
+        spriteSubtiles = returnVals[2]
+        spritePalettes = returnVals[3]
+        subtileGraphics = returnVals[4]
+        hexCodes = returnVals[5]
+        spriteHeight = returnVals[6]
+        spriteWidth = returnVals[7]
+
+def saveCourseTiles():
+    global loadedSportType
     global hexCodes
     global subtileGraphics
     global spritePalettes
     global bigtileCollisions
     global spriteSubtiles
-    global layerChosen
+    global lockFileName
+    global lockedFileName
+
+    subtile_editor_functions.subtile_mode_game_savers. \
+        saveCourseBigtileData(loadedSportType, hexCodes, subtileGraphics, spritePalettes, bigtileCollisions,
+                              spriteSubtiles, lockFileName, lockedFileName)
+
+def saveSmallGraphics():
+    global hexCodes
+    global lockFileName
+    global lockedFileName
     global loadedSpriteType
     global loadedSportType
-    global eyeMode
-    layerChosen = 0
-    # bigtileGraphicsOffsets = COLLISION_OFFSETS plys 0x40A
-    # bigtilePaletteOffsets = COLLISION_OFFSETS plus 0x80A
-    # subtileColoursOffsets = above two added, plus 0xA
-    if lockFileName:
-        name = lockedFileName
-    else:
-        name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (say E for empty subtiles) (leave blank to abort): ")
-        while name.upper() == "E":
-            if input("are you sure? (E again if yes): ").upper() == "E":
-                hexCodes = [[0, 0, 0]] * 0x20
-                spritePalettes = [[0] * 0x400]
-                subtileGraphics = [["00000000"] * (SUBTILE_GRAPHICS_LENGTHS[sport]//2)]
-                return
-            name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (say E for empty subtiles) (leave blank to abort): ")
-    if name != "":
-        try:
-            with open(f"levels/modified_levels/{name}.gbc", 'rb') as file:
-                loadedSpriteType = 22
-                eyeMode = False
-                EYE_BUTTON = button.Button(856, 395, EYE_IMAGES[0], 1)
-                byteLand = file.read()
-                # check = input(f"Do you want to import this game's {CONST_SPORTS[sportType]} palette? (if no, don't enter anything): ")
-                # if check != "":
-                extraOffsets = [[0x4A98, 0, 0, 0x4AA5], [0x8AB0, 0, 0, 0x8ABD], [0, 0, 0xCA3C, 0xCA45],
-                                [0, 0, 0x10A75, 0x10A7E], [0, 0, 0x14B62, 0x14B6B], [0, 0, 0x18B7B, 0x18B84]]
-                hexCodes = []
-                paletteOffset = SUBTILE_GRAPHICS_OFFSETS[sport] + SUBTILE_GRAPHICS_LENGTHS[sport] + 0xA
-                paletteData = b''
-                for i in range(4):
-                    if extraOffsets[sport][i] == 0:
-                        paletteData += byteLand[paletteOffset + (i * 2):paletteOffset + (i * 2) + 2]
-                    else:
-                        paletteData += byteLand[(extraOffsets[sport][i]):(extraOffsets[sport][i]) + 2]
-                paletteData += byteLand[paletteOffset + 0x08:paletteOffset + 0x40]  # 0x40 bytes in a 7 colour palette
-                for i in range(0, 0x40, 2):
-                    hexCodes.append([int((paletteData[i] & 0x1F) << 3), int(((paletteData[i] >> 5) + ((paletteData[i + 1] & 0x3) << 3)) << 3), int(((
-                                                                                                                         paletteData[
-                                                                                                                             i + 1] & 0x7C) >> 2) << 3)])  # GGGRRRRR XBBBBBGG into hex (R, G, B). normal conversion to a val btwn 0 and 1f, then left shift three times cuz hex takes 0 to 255 (so we approx)
-                    # possibly bad to do this in a global way but whatevs
-                    # hmmmmm the colour conversion doesn't work perfectly, maybe there's something im missing, but it works well enough
-
-                # check = input(f"Do you want to import this game's {CONST_SPORTS[sportType]} subtile graphics? (if no, don't enter anything): ")
-                # if check != "":
-                subtileGraphics = []
-                subtileyOffset = SUBTILE_GRAPHICS_OFFSETS[sportType]
-                lengthe = SUBTILE_GRAPHICS_LENGTHS[sportType]
-                subtileData = byteLand[subtileyOffset:subtileyOffset + lengthe]
-                for i in range(0, lengthe, 2):
-                    subtileGraphics.append(str(int(bin(subtileData[i])[2:]) + int(bin(subtileData[i + 1])[2:]) * 2).zfill(8))
-                    # either mult i by 2 or i+1 by 2 (with binary as integers)
-                subtileGraphics = [subtileGraphics]  # others have layers, and i don't want 1000000 branches so w/e makin this a list in a list
-
-                # check = input(f"Do you want to import this game's {CONST_SPORTS[sportType]} bigtile subtile graphic configurations and collisions? (if no, don't enter anything): ")
-                # if check != "":
-                bigtileCollisions = [numby for numby in byteLand[BIGTILE_COLLISION_OFFSETS[sport]: BIGTILE_COLLISION_OFFSETS[sport] + frameCount*4]]
-                spriteSubtiles = [[numby for numby in byteLand[BIGTILE_COLLISION_OFFSETS[sport] + 0x40A:BIGTILE_COLLISION_OFFSETS[sport] + 0x40A + frameCount*4]]]
-                spritePalettes = [[numby for numby in byteLand[BIGTILE_COLLISION_OFFSETS[sport] + 0x80A:BIGTILE_COLLISION_OFFSETS[sport] + 0x80A + frameCount*4]]]
-            print("Loaded.")
-            loadedSportType = sport
-            return
-        except FileNotFoundError:
-            print("bad file. get outta here! ...")
-    print("No changes have been made.")
-    return
-
-
-# other things have different sizes and a cool lil 7 byte header (GRAPHICINTRO in the spreadsheet)
-def loadSubtileDataWithHeader():
-    global frameCount
-    global spriteHeight
-    global spriteWidth
+    global subtileGraphics
     global spriteSubtiles
     global spritePalettes
-    global subtileGraphics
-    global hexCodes
     global groupNum
+    global loadedBearType
+    global sprites
+    global FAMILYBEAR_SPRITE_OFFSETS
+    global FAMILY_OBJ_PALETTE_OFFSETS
+    global BROBEAR_SPRITE_OFFSETS
+    global BRO_OBJ_PALETTE_OFFSETS
+    global SISBEAR_SPRITE_OFFSETS
+    global SIS_OBJ_PALETTE_OFFSETS
+    global MORE_SPRITEISH_OFFSETS
+    global MORE_PALETTEY_OFFSETS
+
+    subtile_editor_functions.subtile_mode_game_savers. \
+        saveSmallGraphicsData(hexCodes, lockFileName, lockedFileName, loadedSpriteType, loadedSportType,
+                              subtileGraphics, spriteSubtiles, spritePalettes, groupNum, loadedBearType, sprites,
+                              FAMILYBEAR_SPRITE_OFFSETS, FAMILY_OBJ_PALETTE_OFFSETS, BROBEAR_SPRITE_OFFSETS,
+                              BRO_OBJ_PALETTE_OFFSETS, SISBEAR_SPRITE_OFFSETS, SIS_OBJ_PALETTE_OFFSETS,
+                              MORE_SPRITEISH_OFFSETS, MORE_PALETTEY_OFFSETS)
+
+def saveBigGraphics():
+    global hexCodes
+    global lockFileName
+    global lockedFileName
     global loadedSpriteType
     global loadedSportType
-    global loadedBearType
-    global layers
-    global layerChosen
-    global quadrantPixel
-    if lockFileName:
-        name = lockedFileName
-    else:
-        name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (leave blank to abort): ")
-    if name != "":
-        try:
-            with open(f"levels/modified_levels/{name}.gbc", 'rb') as file:
-                loadedSpriteType = spriteType
-                loadedSportType = sportType
-                loadedBearType = bearType
-                spriteSubtiles = []
-                spritePalettes = []
-                subtileGraphics = []
-                layerChosen = 0
-                spriteWidth = []
-                spriteHeight = []
-                quadrantPixel = 15
-                byteLand = file.read()
-
-                if spriteType < 17:
-                    if sportType == 0 or sportType == 2:
-                        offsets = FAMILYBEAR_SPRITE_OFFSETS[sportType][spriteType]
-                        paloff = FAMILY_OBJ_PALETTE_OFFSETS[sportType]
-                    elif bearType == 0:
-                        offsets = BROBEAR_SPRITE_OFFSETS[sportType][spriteType]
-                        paloff = BRO_OBJ_PALETTE_OFFSETS[sportType]
-                    else:
-                        offsets = SISBEAR_SPRITE_OFFSETS[sportType][spriteType]
-                        paloff = SIS_OBJ_PALETTE_OFFSETS[sportType]
-                else:
-                    offsets = MORE_SPRITEISH_OFFSETS[spriteType-17]
-                    if spriteType < 19:
-                        if sportType in (0, 2):
-                            paloff = FAMILY_OBJ_PALETTE_OFFSETS[sportType]
-                        elif bearType == 0:
-                            paloff = BRO_OBJ_PALETTE_OFFSETS[sportType]
-                        else:
-                            paloff = SIS_OBJ_PALETTE_OFFSETS[sportType]
-                    else:
-                        paloff = MORE_PALETTEY_OFFSETS[spriteType-17]
-                if type(offsets) is not int:
-                    if type(offsets[0]) is list:
-                        groupNum = input(f"Which group of sprites do you want to edit (from 1 to {len(offsets)}?): ")
-                        while not groupNum.isnumeric() or int(groupNum) < 1 or int(groupNum) > (len(offsets)):
-                            print("Invalid input.")
-                            groupNum = input(f"Which group of sprites do you want to edit (from 1 to {len(offsets)}?): ")
-                        groupNum = int(groupNum) - 1
-                        offsets = offsets[groupNum]
-                    layers = len(offsets)
-                else:
-                    layers = 1
-
-                if type(offsets) is not tuple and type(offsets) is not list:
-                    offsets = [offsets]
-                for i, offset in enumerate(offsets):
-                    graphicIntro = byteLand[offset:offset + 7]
-                    frameCount = graphicIntro[0]
-                    spriteWidth.append(graphicIntro[1])  # unfortunately these have to be lists because sometimes layers ahve different W and L, e.g. toboggan jump's shadow is 4x4
-                    spriteHeight.append(graphicIntro[2])
-                    paletteDataOffset = int.from_bytes(graphicIntro[3:5], "little") + offset
-                    subtileGraphicDataOffset = int.from_bytes(graphicIntro[5:7], "little") + offset #todo standardize some of these variable names, and also maybe stop rewriting the same code so many times over? it works but i feel like it's bad practice and idk
-                    spriteSubtiles.append([inty for inty in byteLand[offset + 7:paletteDataOffset]])
-                    spritePalettes.append([0] + [inty for inty in byteLand[paletteDataOffset:subtileGraphicDataOffset]])  # ughh the colours are connected to subtiles now, i wish these two graphic types weren't so different lol. anyways the [0] is for the elusive 0 subtile, which isn't in memory because it's always fully transparent
-                    tempLengthThing = (subtileGraphicDataOffset - paletteDataOffset) * 0x10
-                    subtileGraphicData = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' + byteLand[subtileGraphicDataOffset:subtileGraphicDataOffset + tempLengthThing]
-                    tempSubtileGraphics = []
-                    for i in range(0, tempLengthThing + 0x10, 2):
-                        tempSubtileGraphics.append(str(int(bin(subtileGraphicData[i])[2:]) + int(bin(subtileGraphicData[i + 1])[2:]) * 2).zfill(8))
-                        # either mult i by 2 or i+1 by 2 (with binary as integers)
-                    subtileGraphics.append(tempSubtileGraphics)
-                    paletteData = byteLand[paloff:paloff + 0x40]
-                    hexCodes = []
-                    for i in range(0, 0x40, 2):
-                        hexCodes.append([int((paletteData[i] & 0x1F) << 3), int(((paletteData[i] >> 5) + ((paletteData[i + 1] & 0x3) << 3)) << 3), int(((paletteData[i + 1] & 0x7C) >> 2) << 3)])
-        except FileNotFoundError:
-            print("File not found.")
-
-#and others still have a 10 byte LONGGRAPHICINTRO
-def loadSubtileDataWithLongHeader():
-    global frameCount
-    global layers
-    global layerChosen
-    global spriteHeight
-    global spriteWidth
+    global subtileGraphics
     global spriteSubtiles
     global spritePalettes
-    global subtileGraphics
-    global hexCodes
-    global groupNum
-    global loadedSpriteType
-    global loadedSportType
     global loadedBearType
-    global quadrantPixel
+    global sprites
     global loadedMenuPagePalette
-    if lockFileName:
-        name = lockedFileName
-    else:
-        name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (leave blank to abort): ")
-    if name != "":
-        try:
-            with open(f"levels/modified_levels/{name}.gbc", 'rb') as file:
-                loadedSpriteType = spriteType
-                loadedSportType = sportType
-                loadedBearType = bearType
-                spriteSubtiles = []
-                spritePalettes = []
-                subtileGraphics = []
-                layerChosen = 0
-                frameCount = 1
-                spriteWidth = []
-                spriteHeight = []
-                quadrantPixel = 2
-                layers = 1
-                byteLand = file.read()
-                offset = LONG_GRAPHICS_OFFSETS[spriteType - 23]
-                paloff = LONG_PALETTE_OFFSETS[spriteType - 23]
-                tempLengthThing = LONG_GRAPHICS_LENGTHS[spriteType - 23]
-                if spriteType == 26:
-                    temp26 = input("Which screen's palette do you want to load (all 5 screens' graphics will still be loaded, but only your chosen palette will be loaded): ")
-                    while not temp26.isnumeric() or int(temp26) > 5 or int(temp26) < 1:
-                        print("Invalid input.")
-                        temp26 = input("Which screen's palette do you want to load (all 5 screens' graphics will still be loaded, but only your chosen palette will be loaded): ")
-                    loadedMenuPagePalette = int(temp26)
-                    paloff = paloff[int(temp26)-1]
-                elif spriteType == 29: #course intros
-                    if sportType == 0:
-                        indexThingFor29 = 8
-                    elif sportType == 2:
-                        indexThingFor29 = 9
-                    else:
-                        indexThingFor29 = bearType*4
-                        if sportType == 3:
-                            indexThingFor29 += 1
-                        elif sportType == 4:
-                            indexThingFor29 += 2
-                        elif sportType == 5:
-                            indexThingFor29 += 3
-                    offset = offset[indexThingFor29]
-                    paloff = paloff[indexThingFor29]
-                    tempLengthThing = tempLengthThing[indexThingFor29]
-                elif spriteType == 30:
-                    print(paloff)
-                    if sportType in (0, 1): #snowy scoreboard
-                        paloff = paloff[1]
-                    else:
-                        paloff = paloff[0]
-                    print(paloff)
-                elif spriteType == 31:
-                    if sportType in (0, 2):
-                        offset = offset[2]
-                        paloff = paloff[2]
-                        tempLengthThing = tempLengthThing[2]
-                    else:
-                        offset = offset[bearType]
-                        paloff = paloff[bearType]
-                        tempLengthThing = tempLengthThing[bearType]
+    global courseIntros
+    global LONG_GRAPHICS_OFFSETS
+    global LONG_PALETTE_OFFSETS
 
-
-
-                """if type(offset) is not int:
-                    if type(offset[0]) is list:
-                        groupNum = input(f"Which group of sprites do you want to edit (from 1 to {len(offsets)}?): ")
-                        while not groupNum.isnumeric() or int(groupNum) < 1 or int(groupNum) > (len(offsets)):
-                            print("Invalid input.")
-                            groupNum = input(f"Which group of sprites do you want to edit (from 1 to {len(offsets)}?): ")
-                        groupNum = int(groupNum) - 1
-                        offset = offset[groupNum]
-                    layers = len(offset)
-                else:"""
-                layers = 1
-
-                graphicIntro = byteLand[offset:offset + 10]
-                spriteWidth.append(graphicIntro[0])  # unfortunately these have to be lists because sometimes layers ahve different W and L, e.g. toboggan jump's shadow is 4x4
-                spriteHeight.append(graphicIntro[1])
-                chunkAdderThingy = (offset//0x4000)*0x4000
-                paletteLocationOffset = int.from_bytes(graphicIntro[2:4], "little")%0x4000 + chunkAdderThingy
-                #graphicLocationOffset = int.from_bytes(graphicIntro[4:6], "little")^0x4000 + chunkAdderThingy is just offset + 10
-                graphicMakerOffset = int.from_bytes(graphicIntro[6:8], "little")%0x4000 + chunkAdderThingy
-                paletteMakerOffset = int.from_bytes(graphicIntro[8:10], "little")%0x4000 + chunkAdderThingy
-
-                spriteSubtiles.append([inty for inty in byteLand[offset + 10:paletteLocationOffset]])
-                spritePalettes.append([inty for inty in byteLand[paletteLocationOffset:paletteMakerOffset]])
-
-                paletteData = byteLand[paloff:paloff+0x40]
-                hexCodes = []
-                for i in range(0, 0x40, 2):
-                    hexCodes.append([int((paletteData[i] & 0x1F) << 3), int(((paletteData[i] >> 5) + ((paletteData[i + 1] & 0x3) << 3)) << 3), int(((paletteData[i + 1] & 0x7C) >> 2) << 3)])
-
-                subtileGraphicData = byteLand[graphicMakerOffset:graphicMakerOffset+tempLengthThing]
-                tempSubtileGraphics = []
-                for i in range(0, tempLengthThing, 2):
-                    tempSubtileGraphics.append(str(int(bin(subtileGraphicData[i])[2:]) + int(bin(subtileGraphicData[i + 1])[2:]) * 2).zfill(8))
-                    # either mult i by 2 or i+1 by 2 (with binary as integers)
-                subtileGraphics.append(tempSubtileGraphics)
-
-        except FileNotFoundError:
-            print("File not found.")
-
-
-
-# saves tile editor data to a game
-def saveThine22Data(sport):
-    global hexCodes
-    global subtileGraphics
-    global spritePalettes
-    global bigtileCollisions
-    global spriteSubtiles
-    bigtileCollisionOffsets = [0x4D6C, 0x8DCD, 0xCCE1, 0x10DAA, 0x14EF1, 0x19031]
-    # bigtileGraphicsOffsets = above plus 0x40A
-    # bigtilePaletteOffsets = above plus 0x80A
-    subtileGraphicsOffsets = [0x5976, 0x99D7, 0xD8EB, 0x119B4, 0x15AFB, 0x19C3B]
-    subtileGraphicsLengths = [0x1EA0, 0x1DC0, 0x1FA0, 0x1FD0, 0x1F70, 0x1900]
-    # subtileColoursOffsets = above two added, plus 0xA
-    if lockFileName:
-        name = lockedFileName
-    else:
-        name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (leave blank to abort): ")
-    if name != "":
-        try:
-            with open(f"levels/modified_levels/{name}.gbc", 'r+b') as file:
-                # check = input("Do you want to save your palette to the file? (if no, don't enter anything): ")
-                # if check != "":
-                extraOffsets = [[0x4A98, 0, 0, 0x4AA5], [0x8AB0, 0, 0, 0x8ABD], [0, 0, 0xCA3C, 0xCA45], [0, 0, 0x10A75, 0x10A7E], [0, 0, 0x14B62, 0x14B6B], [0, 0, 0x18B7B, 0x18B84]]
-                paletteOffset = subtileGraphicsOffsets[sport] + subtileGraphicsLengths[sport] + 0xA
-                for i in range(4):
-                    RGB = hexCodes[i]
-                    G = bin(RGB[1] >> 3)[2:].zfill(5)
-                    temp = G[2:].zfill(3) + bin(RGB[0] >> 3)[2:].zfill(5) + "0" + bin(RGB[2] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
-                    bitey = int(temp, 2).to_bytes(2, "big")
-                    if extraOffsets[sport][i] == 0:
-                        file.seek(paletteOffset + i * 2, 0)
-                        file.write(bitey)
-                    else:
-                        file.seek(extraOffsets[sport][i], 0)
-                        file.write(bitey)
-                file.seek(paletteOffset + 8, 0)
-                for i in range(4, 0x20):
-                    RGB = hexCodes[i]
-                    G = bin(RGB[1] >> 3)[2:].zfill(5)
-                    temp = G[2:].zfill(3) + bin(RGB[0] >> 3)[2:].zfill(5) + "0" + bin(RGB[2] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
-                    bitey = int(temp, 2).to_bytes(2, "big")
-                    file.write(bitey)
-                # check = input("Do you want to save your subtile graphics to the file? (if no, don't enter anything): ")
-                # if check != "":
-                subtileyOffset = subtileGraphicsOffsets[sport]
-                file.seek(subtileyOffset)
-                for i in range(subtileGraphicsLengths[sport] // 2):
-                    quaternary = subtileGraphics[0][i]
-                    left = ""
-                    right = ""
-                    # prolly a bad way of doing this but can't think of a better one rn
-                    for num in quaternary:
-                        if num == "0":
-                            left += "0"
-                            right += "0"
-                        elif num == "1":
-                            left += "1"
-                            right += "0"
-                        elif num == "2":
-                            left += "0"
-                            right += "1"
-                        elif num == "3":
-                            left += "1"
-                            right += "1"
-                    file.write(int(left, 2).to_bytes())
-                    file.write(int(right, 2).to_bytes())
-
-                # check = input("Do you want to save your bigtile subtile graphic configurations and collisions to the file? (if no, don't enter anything): ")
-                # if check != "":
-                file.seek(bigtileCollisionOffsets[sport], 0)
-                for bytten in bigtileCollisions:
-                    file.write(bytten.to_bytes())
-                file.seek(bigtileCollisionOffsets[sport] + 0x40A, 0)
-                for bytten in spriteSubtiles[0]:
-                    file.write(bytten.to_bytes())
-                file.seek(bigtileCollisionOffsets[sport] + 0x80A, 0)
-                for bytten in spritePalettes[0]:
-                    file.write(bytten.to_bytes())
-            print("Saved.")
-            return
-        except FileNotFoundError:
-            print("bad file. get outta here! ...")
-    print("No changes have been made.")
-    return
-
-def saveThineSub22Data():
-    global hexCodes
-    global spriteSubtiles
-    global spritePalettes
-    global subtileGraphics
-    if lockFileName:
-        name = lockedFileName
-    else:
-        name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (leave blank to abort): ")
-    if name != "":
-        try:
-            with open(f"levels/modified_levels/{name}.gbc", 'r+b') as file:
-                if spriteType < 17:
-                    if loadedSportType == 0 or loadedSportType == 2:
-                        graphicIntroOffsets = FAMILYBEAR_SPRITE_OFFSETS[loadedSportType][loadedSpriteType]
-                        paletteOffset = FAMILY_OBJ_PALETTE_OFFSETS[loadedSportType]
-                    elif loadedBearType == 0:
-                        graphicIntroOffsets = BROBEAR_SPRITE_OFFSETS[loadedSportType][loadedSpriteType]
-                        paletteOffset = BRO_OBJ_PALETTE_OFFSETS[loadedSportType]
-                    else:
-                        graphicIntroOffsets = SISBEAR_SPRITE_OFFSETS[loadedSportType][loadedSpriteType]
-                        paletteOffset = SIS_OBJ_PALETTE_OFFSETS[loadedSportType]
-                else:
-                    graphicIntroOffsets = MORE_SPRITEISH_OFFSETS[spriteType - 17]
-                    if spriteType < 19:
-                        paletteOffset = BRO_OBJ_PALETTE_OFFSETS[sportType]
-                    else:
-                        paletteOffset = MORE_PALETTEY_OFFSETS[spriteType - 17]
-
-                if type(graphicIntroOffsets) is not int:
-                    if type(graphicIntroOffsets[0]) is list:
-                        graphicIntroOffsets = graphicIntroOffsets[groupNum]
-
-                if type(graphicIntroOffsets) is int:
-                    graphicIntroOffsets = [graphicIntroOffsets]
-
-                file.seek(paletteOffset)
-                for i in range(0x20):
-                    RGB = hexCodes[i]
-                    G = bin(RGB[1] >> 3)[2:].zfill(5)
-                    temp = G[2:].zfill(3) + bin(RGB[0] >> 3)[2:].zfill(5) + "0" + bin(RGB[2] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
-                    bitey = int(temp, 2).to_bytes(2, "big")
-                    file.write(bitey)
-                # check = input("Do you want to save your subtile graphics to the file? (if no, don't enter anything): ")
-                # if check != "":
-                for layerrr in range(len(graphicIntroOffsets)):
-                    file.seek(graphicIntroOffsets[layerrr] + 7)
-                    for bytten in spriteSubtiles[layerrr]:
-                        file.write(bytten.to_bytes())
-                    for bytten in spritePalettes[layerrr][1:]:  # skippa that 0 subtile
-                        file.write(bytten.to_bytes())
-                    for j in range(8, len(subtileGraphics[layerrr])):  # skippin 0 subtubsubt
-                        quaternary = subtileGraphics[layerrr][j]
-                        left = ""
-                        right = ""
-                        # prolly a bad way of doing this but can't think of a better one rn
-                        for num in quaternary:
-                            if num == "0":
-                                left += "0"
-                                right += "0"
-                            elif num == "1":
-                                left += "1"
-                                right += "0"
-                            elif num == "2":
-                                left += "0"
-                                right += "1"
-                            elif num == "3":
-                                left += "1"
-                                right += "1"
-                        file.write(int(left, 2).to_bytes())
-                        file.write(int(right, 2).to_bytes())
-            print("Saved.")
-            return
-        except FileNotFoundError:
-            print("bad file. get outta here! ...")
-    print("No changes have been made.")
-    return
-
-def saveThineSup22Data():
-    global hexCodes
-    global spriteSubtiles
-    global spritePalettes
-    global subtileGraphics
-    if lockFileName:
-        name = lockedFileName
-    else:
-        name = input("enter the name of the bears file (in levels/modified_levels/) here (.gbc file format assumed, so don't type it) (leave blank to abort): ")
-    if name != "":
-        try:
-            with open(f"levels/modified_levels/{name}.gbc", 'r+b') as file:
-                graphicIntroOffsets = LONG_GRAPHICS_OFFSETS[loadedSpriteType-23]
-                paletteOffset = LONG_PALETTE_OFFSETS[loadedSpriteType-23]
-                if spriteType == 26:
-                    print(f"(saving page {loadedMenuPagePalette}'s palette)")
-                    paletteOffset = paletteOffset[int(loadedMenuPagePalette-1)] #12345 to 01234
-                elif spriteType == 29: #course intros
-                    if sportType == 0:
-                        indexThingFor29 = 8
-                    elif sportType == 2:
-                        indexThingFor29 = 9
-                    else:
-                        indexThingFor29 = bearType*4
-                        if sportType == 3:
-                            indexThingFor29 += 1
-                        elif sportType == 4:
-                            indexThingFor29 += 2
-                        elif sportType == 5:
-                            indexThingFor29 += 3
-                    graphicIntroOffsets = graphicIntroOffsets[indexThingFor29]
-                    paletteOffset = paletteOffset[indexThingFor29]
-                elif spriteType == 30:
-                    if sportType in (0, 1): #snowy scoreboard
-                        paletteOffset = paletteOffset[1]
-                    else:
-                        paletteOffset = paletteOffset[0]
-                elif spriteType == 31:
-                    if sportType in (0, 2):
-                        graphicIntroOffsets = graphicIntroOffsets[2]
-                        paletteOffset = paletteOffset[2]
-                    else:
-                        graphicIntroOffsets = graphicIntroOffsets[bearType]
-                        paletteOffset = paletteOffset[bearType]
-
-
-                file.seek(paletteOffset)
-                for i in range(0x20):
-                    RGB = hexCodes[i]
-                    G = bin(RGB[1] >> 3)[2:].zfill(5)
-                    temp = G[2:].zfill(3) + bin(RGB[0] >> 3)[2:].zfill(5) + "0" + bin(RGB[2] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
-                    bitey = int(temp, 2).to_bytes(2, "big")
-                    file.write(bitey)
-                # check = input("Do you want to save your subtile graphics to the file? (if no, don't enter anything): ")
-                # if check != "":
-                file.seek(graphicIntroOffsets + 10)
-                for bytten in spriteSubtiles[0]:
-                    file.write(bytten.to_bytes())
-                for bytten in spritePalettes[0]:
-                    file.write(bytten.to_bytes())
-                file.seek(0x40, 1)
-                for j in range(len(subtileGraphics[0])):
-                    quaternary = subtileGraphics[0][j]
-                    left = ""
-                    right = ""
-                    # prolly a bad way of doing this but can't think of a better one rn
-                    for num in quaternary:
-                        if num == "0":
-                            left += "0"
-                            right += "0"
-                        elif num == "1":
-                            left += "1"
-                            right += "0"
-                        elif num == "2":
-                            left += "0"
-                            right += "1"
-                        elif num == "3":
-                            left += "1"
-                            right += "1"
-                    file.write(int(left, 2).to_bytes())
-                    file.write(int(right, 2).to_bytes())
-            print("Saved.")
-            return
-        except FileNotFoundError:
-            print("bad file. get outta here! ...")
-    print("No changes have been made.")
-    return
+    subtile_editor_functions.subtile_mode_game_savers. \
+        saveBigGraphicsData(hexCodes, lockFileName, lockedFileName, loadedSpriteType, loadedSportType, subtileGraphics,
+                            spriteSubtiles, spritePalettes, loadedBearType, sprites, loadedMenuPagePalette,
+                            courseIntros, LONG_GRAPHICS_OFFSETS, LONG_PALETTE_OFFSETS)
 
 def bmpPrintrer22up(bigtile, layaer, equalTo22):
     guaug = []
@@ -1098,6 +802,7 @@ def bmpPrintrer22up(bigtile, layaer, equalTo22):
                 temp = G[2:].zfill(3) + bin(RGB[2] >> 3)[2:].zfill(5) + "0" + bin(RGB[0] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
                 wwwwww += (int(temp, 2).to_bytes(2, "big") * 8)
             gorg += (wwwwww) * 8
+            i
         with open(f"tiles/efftemptiles/tile{str(i).zfill(3)}.bmp", "wb") as bmp:
             bmp.write(b'BM\x00\x00\x00\x00\x00\x00\x00\x006\x00\x00\x00(\x00\x00\x00' + (8 * spriteWidth[layaer]).to_bytes(4, "little") + (8 * spriteHeight[layaer]).to_bytes(4, "little") + b'\x01\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' + gorg)
 
@@ -1160,7 +865,7 @@ def pngify(name):
         if count >= frameCount:
             break
 
-    if loadedSpriteType == 22:
+    if loadedSpriteType == sprites.courseBigtile.value:
         if not os.path.exists(f"tiles/{name}_effects"):
             os.makedirs(f"tiles/{name}_effects")
         count = 0
@@ -1191,7 +896,7 @@ def tinySubtileDraw(subGraphics, hexCodes, palSelected, scroll):
                         colourSelected = int(subGraphics[((k * NUM_OF_SMALLTILES_DISPLAYED_HZ) + l) * 8 + i][j])
                     except Exception:  # outta tiles to draw
                         return
-                    if loadedSpriteType >= 22: #course selections or longs
+                    if loadedSpriteType not in smallerSprites: #course selections or longs
                         pygame.draw.rect(SCREEN, hexCodes[colourSelected + palSelected * 4], rectangle)  # gotta use paletteSelected for this because subtiles aren't connected to one palette, rather a palette is assigned upon bigtile construction
                     else:
                         palselels = spritePalettes[layerChosen][(l) + (k * NUM_OF_SMALLTILES_DISPLAYED_HZ)]
@@ -1203,11 +908,11 @@ def subtilesOnBigtile(layaaaa):
         for j in range(spriteWidth[layaaaa]):
             hz_range = range(8)
             vt_range = range(8)
-            if loadedSpriteType == 22:
+            if loadedSpriteType == sprites.courseBigtile.value:
                 ox400LengthStartIndex = bigtileSelected * 2 + j + (i * 0x20) + (bigtileSelected // 16) * 0x20
                 bankSwitch = (spritePalettes[0][ox400LengthStartIndex] & 0x8) * 0x100
                 palalala = (spritePalettes[0][ox400LengthStartIndex])
-            elif loadedSpriteType < 22:
+            elif loadedSpriteType in smallerSprites:
                 ox400LengthStartIndex = bigtileSelected * (spriteWidth[layaaaa] * spriteHeight[layaaaa]) + i * spriteWidth[layaaaa] + j
                 bankSwitch = 0
                 palalala = (spritePalettes[layaaaa][spriteSubtiles[layaaaa][ox400LengthStartIndex]])  # for these, colours are connected to subtiles, guh ...
@@ -1250,7 +955,7 @@ def infoUpdater(stackReset):
     global undoStack
     global redoStack
     global currentSubtileStackInfo
-    if loadedSpriteType == 22:
+    if loadedSpriteType == sprites.courseBigtile.value:
         ox400IndexThingForHere = bigtileSelected * 2 + bigtileQuadrantSelected % 2 + (bigtileQuadrantSelected // 2) * 0x20 + (bigtileSelected // 0x10) * 0x20
         P = spritePalettes[0][ox400IndexThingForHere]
         collisionSelected = COLLISION_COLOUR_MAPPER[bigtileCollisions[bigtileSelected * 4 + bigtileQuadrantSelected % 4]]
@@ -1259,7 +964,7 @@ def infoUpdater(stackReset):
         subtileyPalleteyThingies[0] = P & 0x80 != 0  # priority
         subtileyPalleteyThingies[1] = P & 0x40 != 0  # vt_flip
         subtileyPalleteyThingies[2] = P & 0x20 != 0  # hz_flip
-    elif loadedSpriteType < 22:
+    elif loadedSpriteType in smallerSprites:
         ox400IndexThingForHere = bigtileSelected * spriteWidth[layerChosen] * spriteHeight[layerChosen] + bigtileQuadrantSelected
         subtileSelected = spriteSubtiles[layerChosen][ox400IndexThingForHere]
         P = spritePalettes[layerChosen][subtileSelected]
@@ -1293,19 +998,20 @@ def subtileStackUpdate(msg):
     return
 
 
-def spriteCheck(sport, sprite):
+def spriteCheck(sport, sprite, spriteEnum):
+    
     if sport < 2:  # snowy bad ones
-        if sprite in (10, 11, 13, 15, 16):
-            sprite = 0
+        if sprite in (spriteEnum.mud.value, spriteEnum.puddle.value, spriteEnum.whirlpool.value, spriteEnum.slowing.value, spriteEnum.stopped.value):
+            sprite = spriteEnum.moving.value
     elif sport < 4:  # watery bad ones
-        if sprite in (7, 8, 10, 11, 12, 15, 16):
-            sprite = 0
+        if sprite in (spriteEnum.rampLeft.value, spriteEnum.rampRight.value, spriteEnum.mud.value, spriteEnum.puddle.value, spriteEnum.ice.value, spriteEnum.slowing.value, spriteEnum.stopped.value):
+            sprite = spriteEnum.moving.value
     elif sport == 4:  # bike bad ones
-        if sprite in (12, 13, 15):
-            sprite = 0
+        if sprite in (spriteEnum.ice.value, spriteEnum.whirlpool.value, spriteEnum.slowing.value):
+            sprite = spriteEnum.moving.value
     else:  # db baddies
-        if sprite in (12, 13):
-            sprite = 0
+        if sprite in (spriteEnum.ice.value, spriteEnum.whirlpool.value):
+            sprite = spriteEnum.moving.value
     return sprite
 
 
@@ -1319,6 +1025,7 @@ while running:
 
     # fps (and title)
     clock.tick()
+    # will change this to be named fps at some point probably, but i just like the word frameseys more for now
     frameseys = clock.get_fps()
     pygame.display.set_caption(f"bears tile editor: {frameseys} fps")
 
@@ -1332,21 +1039,22 @@ while running:
 
     # mode changing buttons
     if COURSE_EDITOR_BUTTON.draw(SCREEN):
-        programMode = programModes.courseEditor
-        sportTypeButtonMover(programMode)
+        programMode = programModes.courseEditor.value
+        sportTypeButtonMover(programMode, sportTypeButtons)
+
     if TILE_EDITOR_BUTTON.draw(SCREEN):
-        programMode = programModes.subtileDrawer
-        sportTypeButtonMover(programMode)
-        spriteType = spriteCheck(sportType, spriteType)
+        programMode = programModes.subtileDrawer.value
+        sportTypeButtonMover(programMode, sportTypeButtons)
+        spriteType = spriteCheck(sportType, spriteType, sprites)
 
     # info mode, stops other modes to make things a bit quicker
     if infoMode:
         pygame.event.get()
-        if programMode == programModes.courseEditor:
+        if programMode == programModes.courseEditor.value:
             SCREEN.blit(INFO_IMAGES[0], (0, 0))
-        elif loadedSpriteType == 22:
+        elif loadedSpriteType == sprites.courseBigtile.value:
             SCREEN.blit(INFO_IMAGES[1], (0, 0))
-        elif loadedSpriteType < 22:
+        elif loadedSpriteType in smallerSprites:
             SCREEN.blit(INFO_IMAGES[2], (0, 0))
         else:
             SCREEN.blit(INFO_IMAGES[3], (0, 0))
@@ -1366,7 +1074,7 @@ while running:
     #
     # COURSE EDITOR MODE (for editing course layout)
     #
-    elif programMode == programModes.courseEditor:
+    elif programMode == programModes.courseEditor.value:
 
         # event handler
         for event in pygame.event.get():
@@ -1383,37 +1091,13 @@ while running:
                 if event.key == pygame.K_RSHIFT or event.key == pygame.K_LSHIFT:
                     scrollSpeed = 2
 
-                # inventory slot chooser
-                if event.key == pygame.K_1:
-                    inventoryIndex = 0
-                    chosenTile = tileInvPictures[0]
-                elif event.key == pygame.K_2:
-                    inventoryIndex = 1
-                    chosenTile = tileInvPictures[1]
-                elif event.key == pygame.K_3:
-                    inventoryIndex = 2
-                    chosenTile = tileInvPictures[2]
-                elif event.key == pygame.K_4:
-                    inventoryIndex = 3
-                    chosenTile = tileInvPictures[3]
-                elif event.key == pygame.K_5:
-                    inventoryIndex = 4
-                    chosenTile = tileInvPictures[4]
-                elif event.key == pygame.K_6:
-                    inventoryIndex = 5
-                    chosenTile = tileInvPictures[5]
-                elif event.key == pygame.K_7:
-                    inventoryIndex = 6
-                    chosenTile = tileInvPictures[6]
-                elif event.key == pygame.K_8:
-                    inventoryIndex = 7
-                    chosenTile = tileInvPictures[7]
-                elif event.key == pygame.K_9:
-                    inventoryIndex = 8
-                    chosenTile = tileInvPictures[8]
-                elif event.key == pygame.K_0:
-                    inventoryIndex = 9
-                    chosenTile = tileInvPictures[9]
+                # inventory slot chooser. keys map to 0-9 for inv slots
+                try:
+                    buttonPressedToIndex = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9, pygame.K_0].index(event.key)
+                    inventoryIndex = buttonPressedToIndex
+                    chosenTile = tileInvPictures[buttonPressedToIndex]
+                except ValueError:
+                    continue
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
@@ -1689,12 +1373,12 @@ while running:
         if VERTICAL_LINE_COUNT > mouseX >= 0 and mouseY < sportHeights[sportType][sportDifficulty]:
             mouseOverTile = allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16]
             if pygame.mouse.get_pressed()[0] == 1:
-                if drawMode == drawModes.draw and mouseOverTile != chosenTile:
+                if drawMode == drawModes.draw.value and mouseOverTile != chosenTile:
                     mouseOverTile = chosenTile
-                elif drawMode == drawModes.bucket and mouseOverTile != chosenTile:
-                    paint(mouseX, mouseY, chosenTile, mouseOverTile, allLevelTileCSVs[sportType][sportDifficulty], sportHeights[sportType][sportDifficulty])
-                elif drawMode == drawModes.stamp:
-                    stamp(mouseX, mouseY, stampArr)
+                elif drawMode == drawModes.bucket.value and mouseOverTile != chosenTile:
+                    course_editor_functions.drawing_funcs.paint(mouseX, mouseY, chosenTile, mouseOverTile, allLevelTileCSVs[sportType][sportDifficulty], sportHeights[sportType][sportDifficulty])
+                elif drawMode == drawModes.stamp.value:
+                    course_editor_functions.drawing_funcs.stamp(mouseX, mouseY, stampArr, sportHeights, allLevelTileCSVs, sportType, sportDifficulty)
             elif pygame.mouse.get_pressed()[1] == 1 and mouseOverTile != chosenTile:
                 chosenTile = mouseOverTile
                 tileInvPictures[inventoryIndex] = chosenTile
@@ -1715,11 +1399,11 @@ while running:
 
         # buttons for drawing mode
         if PENCIL_BUTTON.draw(SCREEN):
-            drawMode = drawModes.draw
+            drawMode = drawModes.draw.value
         if BUCKET_BUTTON.draw(SCREEN):
-            drawMode = drawModes.bucket
+            drawMode = drawModes.bucket.value
         if STAMP_BUTTON.draw(SCREEN):
-            drawMode = drawModes.stamp
+            drawMode = drawModes.stamp.value
         # and highlight selected
         modangle = pygame.rect = (870 + drawMode * 40, 50, 32, 32)
         pygame.draw.rect(SCREEN, (255, 0, 0), modangle, 1)
@@ -1735,7 +1419,7 @@ while running:
     #
     # SUBTILE PAINT MODE AND BIGTILE CONSTRUCTOR MODE
     #
-    elif programMode == programModes.subtileDrawer:
+    elif programMode == programModes.subtileDrawer.value:
 
         if SUBTILE_EDITOR_BUTTON.draw(SCREEN):
             subtileMode = True
@@ -1819,7 +1503,7 @@ while running:
                 # copying and pasting in subtile mode
                 if event.key == pygame.K_c:
                     subtileClipboard[subtileClipboardNumber] = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
-                
+
                 elif event.key == pygame.K_v:
                     currentSubtileStackInfo = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
                     if subtileClipboard[subtileClipboardNumber] != currentSubtileStackInfo:
@@ -1900,7 +1584,7 @@ while running:
                 if scrollRight:
                     bigtileSelected += 1
                 scrollLRWait = ((frameseys+1)//25) // (scrollSpeed ** 4)
-                if waiter or loadedSpriteType != 22:
+                if waiter or loadedSpriteType != sprites.courseBigtile.value:
                     scrollLRWait *= 4
                     waiter = False
             else:
@@ -1975,7 +1659,7 @@ while running:
             else:
                 bigQuadMovWait -= 1
 
-            """if loadedSpriteType >= 22:
+            """if loadedSpriteType >= 22: #sprites.stuff enum now!!!
                 if loadedSpriteType == 22:
                     ox400IndexThingForHere = bigtileSelected * 2 + bigtileQuadrantSelected % 2 + (bigtileQuadrantSelected // 2) * 0x20 + (bigtileSelected // 0x10) * 0x20
                 elif loadedSpriteType > 22:
@@ -1992,17 +1676,17 @@ while running:
             if 750 < mouseX < 750 + (PALETTE_PIXEL * 4) and 385 < mouseY < 385 + (PALETTE_PIXEL * 8):
                 colourSelected = (mouseX - 750) // PALETTE_PIXEL
                 paletteSelected = (mouseY - 385) // PALETTE_PIXEL
-                if loadedSpriteType == 22:
+                if loadedSpriteType == sprites.courseBigtile:
                     if not subtileMode:
                         ox400IndexThingForHere = bigtileSelected * 2 + bigtileQuadrantSelected % 2 + (bigtileQuadrantSelected // 2) * 0x20 + (bigtileSelected // 0x10) * 0x20
                         spritePalettes[0][ox400IndexThingForHere] = (spritePalettes[0][ox400IndexThingForHere] & 0b11111000) | paletteSelected
-                elif loadedSpriteType < 22:
+                elif loadedSpriteType in smallerSprites:
                     spritePalettes[layerChosen][bigtileQuadrantSelected] = paletteSelected
                 else:
                     spritePalettes[0][bigtileQuadrantSelected] = (spritePalettes[0][bigtileQuadrantSelected] & 0b11111000) | paletteSelected
 
             # clicking a big subtile thingy to change it
-            elif subtileMode and 0 < mouseX < (quadrantPixel * 2 * 8) and 50 < mouseY < 50 + (quadrantPixel * 2 * 8) and (loadedSpriteType >= 22 or subtileSelected != 0):  # end part is so the ghost tile isn't editable
+            elif subtileMode and 0 < mouseX < (quadrantPixel * 2 * 8) and 50 < mouseY < 50 + (quadrantPixel * 2 * 8) and (loadedSpriteType in biggerSprites or subtileSelected != 0):  # end part is so the ghost tile isn't editable
                 colnum = ((mouseX) // (quadrantPixel * 2))
                 rownum = ((mouseY - 50) // (quadrantPixel * 2))
                 index = subtileSelected * 8 + rownum
@@ -2025,17 +1709,17 @@ while running:
                 currentSubtileStackInfo = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
                 if subtileSelected > (len(subtileGraphics[layerChosen]) // 8) - 1:
                     subtileSelected = (len(subtileGraphics[layerChosen]) // 8) - 1
-                if loadedSpriteType < 22:
+                if loadedSpriteType in smallerSprites:
                     paletteSelected = spritePalettes[layerChosen][subtileSelected]
                 if not subtileMode:
-                    if loadedSpriteType == 22:
+                    if loadedSpriteType == sprites.courseBigtile.value:
                         ox400IndexThingForHere = bigtileSelected * 2 + bigtileQuadrantSelected % 2 + (bigtileQuadrantSelected // 2) * 0x20 + (bigtileSelected // 0x10) * 0x20
                         spriteSubtiles[0][ox400IndexThingForHere] = subtileSelected % 0x100
                         if subtileSelected >= 0x100:
                             spritePalettes[0][ox400IndexThingForHere] |= 0x8
                         else:
                             spritePalettes[0][ox400IndexThingForHere] &= 0xF7  # gets rid of 0x8
-                    elif loadedSpriteType < 22:
+                    elif loadedSpriteType in smallerSprites:
                         ox400IndexThingForHere = bigtileSelected * spriteWidth[layerChosen] * spriteHeight[layerChosen] + bigtileQuadrantSelected
                         spriteSubtiles[layerChosen][ox400IndexThingForHere] = subtileSelected
                     else:
@@ -2047,7 +1731,7 @@ while running:
                             spritePalettes[0][ox400IndexThingForHere] &= 0xF7  # gets rid of 0x8
 
             # clicking a collision colour (and change cur quadrant)
-            elif 0 < mouseX < COLLISION_PIXEL * 3 and 400 < mouseY < 400 + COLLISION_PIXEL * 5 and not subtileMode and loadedSpriteType == 22:
+            elif 0 < mouseX < COLLISION_PIXEL * 3 and 400 < mouseY < 400 + COLLISION_PIXEL * 5 and not subtileMode and loadedSpriteType == sprites.courseBigtile.value:
                 ###print("D")
                 collisionSelected = ((mouseY - 400) // COLLISION_PIXEL) * 3 + (mouseX // COLLISION_PIXEL)
                 for key in COLLISION_COLOUR_MAPPER:
@@ -2056,9 +1740,9 @@ while running:
                         break
 
             # clicking a subtileythingy
-            elif 856 < mouseX < 856 + THINGY_PIXEL and 395 < mouseY < 395 + THINGY_PIXEL * 3 + 20 and not subtileMode and loadedSpriteType >= 22:
+            elif 856 < mouseX < 856 + THINGY_PIXEL and 395 < mouseY < 395 + THINGY_PIXEL * 3 + 20 and not subtileMode and loadedSpriteType in biggerSprites:
                 if thingyWait == 0:
-                    if loadedSpriteType == 22:
+                    if loadedSpriteType == sprites.courseBigtile.value:
                         ox400IndexThingForHere = bigtileSelected * 2 + bigtileQuadrantSelected % 2 + (bigtileQuadrantSelected // 2) * 0x20 + (bigtileSelected // 0x10) * 0x20
                     else: # > 22
                         ox400IndexThingForHere = bigtileQuadrantSelected
@@ -2077,7 +1761,7 @@ while running:
                     thingyWait -= 1
 
             # non 17 thingies (vision of the layers of the bayers with the big wayers)
-            elif 856 < mouseX < 856 + THINGY_PIXEL and 445 < mouseY < 445 + THINGY_PIXEL * (layers + 1) + 10 * layers and loadedSpriteType < 22:
+            elif 856 < mouseX < 856 + THINGY_PIXEL and 445 < mouseY < 445 + THINGY_PIXEL * (layers + 1) + 10 * layers and loadedSpriteType in smallerSprites:
                 for i in range(layers):
                     if 445 + (THINGY_PIXEL + 10) * (i) < mouseY < 445 + THINGY_PIXEL * (i + 1) + 10 * (i):  # button 1 (prio)
                         if spriteWidth[i] != spriteWidth[layerChosen] or spriteHeight[i] != spriteHeight[layerChosen]:
@@ -2089,82 +1773,82 @@ while running:
             ##
             # sprite types
             elif 972 < mouseX < 990 and 596 < mouseY < 615:  # ramp left
-                spriteType = 7
+                spriteType = sprites.rampLeft.value
                 if sportType == 0 or sportType == 1 or sportType == 4:
                     tempRect2 = pygame.Rect = (1014, 596, 18, 18)
             elif 993 < mouseX < 1012 and 596 < mouseY < 615:  # ramp mid
-                spriteType = 9
+                spriteType = sprites.rampJump.value
             elif 1014 < mouseX < 1033 and 596 < mouseY < 615:  # ramp right
-                spriteType = 8
+                spriteType = sprites.rampRight.value
                 if sportType == 0 or sportType == 1 or sportType == 4:
-                    spriteType = 7
+                    spriteType = sprites.rampLeft.value
                     tempRect2 = pygame.Rect = (1014, 596, 18, 18)
             elif 960 < mouseX < 979 and 631 < mouseY < 650:  # course bigtiles
-                spriteType = 22
-            elif 981 < mouseX < 1000 and 631 < mouseY < 650:  # slowing
-                spriteType = 0
+                spriteType = sprites.courseBigtile.value
+            elif 981 < mouseX < 1000 and 631 < mouseY < 650:  # moving
+                spriteType = sprites.moving.value
             elif 1002 < mouseX < 1021 and 631 < mouseY < 650:  # slowing
-                spriteType = 15
+                spriteType = sprites.slowing.value
             elif 1023 < mouseX < 1042 and 631 < mouseY < 650:  # stopped
-                spriteType = 16
+                spriteType = sprites.stopped.value
             elif 1082 < mouseX < 1100 and 608 < mouseY < 627:  # A
-                spriteType = 1
+                spriteType = sprites.aTrick.value
             elif 1103 < mouseX < 1121 and 608 < mouseY < 627:  # B
-                spriteType = 2
+                spriteType = sprites.bTrick.value
             elif 1082 < mouseX < 1100 and 629 < mouseY < 648:  # AUL
-                spriteType = 3
+                spriteType = sprites.aUpLeftTrick.value
             elif 1103 < mouseX < 1121 and 629 < mouseY < 648:  # BUL
-                spriteType = 4
+                spriteType = sprites.bUpLeftTrick.value
             elif 1082 < mouseX < 1100 and 650 < mouseY < 669:  # AUR
-                spriteType = 5
+                spriteType = sprites.aUpRightTrick.value
             elif 1103 < mouseX < 1121 and 650 < mouseY < 669:  # BUR
-                spriteType = 6
+                spriteType = sprites.bUpRightTrick.value
             elif 1156 < mouseX < 1174 and 596 < mouseY < 615:  # mud
-                spriteType = 10
+                spriteType = sprites.mud.value
             elif 1177 < mouseX < 1195 and 596 < mouseY < 615:  # pud
-                spriteType = 11
+                spriteType = sprites.puddle.value
             elif 1156 < mouseX < 1174 and 617 < mouseY < 646:  # whirlpool
-                spriteType = 13
+                spriteType = sprites.whirlpool.value
             elif 1177 < mouseX < 1195 and 617 < mouseY < 636:  # ice
-                spriteType = 12
+                spriteType = sprites.ice.value
             elif 1167 < mouseX < 1185 and 638 < mouseY < 657:  # collision
-                spriteType = 14
+                spriteType = sprites.wipeout.value
             elif 1230 < mouseX < 1268 and 592 < mouseY < 630:  # brobear
                 bearType = 0
             elif 1230 < mouseX < 1268 and 633 < mouseY < 671:  # sisbear
                 bearType = 1
             elif 950 < mouseX < 968 and 651 < mouseY < 669:  # HUD diffs
-                spriteType = 17
+                spriteType = sprites.hudDifficulties.value
             elif 971 < mouseX < 989 and 651 < mouseY < 669:  # HUD sports
-                spriteType = 18
+                spriteType = sprites.hudSports.value
             elif 992 < mouseX < 1010 and 651 < mouseY < 669:  # 5x5 selectangle
-                spriteType = 19
+                spriteType = sprites.selectangle5x5.value
             elif 1013 < mouseX < 1031 and 651 < mouseY < 669:  # 4x3 selectangle
-                spriteType = 20
+                spriteType = sprites.selectangle4x3.value
             elif 1034 < mouseX < 1052 and 651 < mouseY < 669:  # the medal!
-                spriteType = 21
+                spriteType = sprites.medal.value
             elif 772 < mouseX < 790 and 608 < mouseY < 626:  # dev/publisher credit intro
-                spriteType = 23
+                spriteType = sprites.devPublisherCreditIntro.value
             elif 793 < mouseX < 811 and 608 < mouseY < 626:  # brobear is soo cool!
-                spriteType = 24
+                spriteType = sprites.coolBrotherBearBikingIntro.value
             elif 814 < mouseX < 832 and 608 < mouseY < 626:  # car intro
-                spriteType = 25
+                spriteType = sprites.carIntro.value
             elif 772 < mouseX < 790 and 629 < mouseY < 640:  # various menu items
-                spriteType = 26
+                spriteType = sprites.variousMenuItems.value
             elif 793 < mouseX < 811 and 629 < mouseY < 640:  # font 1
-                spriteType = 27
+                spriteType = sprites.font1.value
             elif 814 < mouseX < 832 and 629 < mouseY < 640:  # font 2
-                spriteType = 28
+                spriteType = sprites.font2.value
             elif 772 < mouseX < 790 and 650 < mouseY < 668:  # course intro
-                spriteType = 29
+                spriteType = sprites.courseIntro.value
             elif 793 < mouseX < 811 and 650 < mouseY < 668:  # scoreboard
-                spriteType = 30
+                spriteType = sprites.scoreboard.value
             elif 814 < mouseX < 832 and 650 < mouseY < 668:  # podium finish
-                spriteType = 31
+                spriteType = sprites.podiumFinish.value
 
-            spriteType = spriteCheck(sportType, spriteType)
+            spriteType = spriteCheck(sportType, spriteType, sprites)
             tempRect = pygame.Rect = HIGHLIGHTY_SPRITE_RECTANGLE_POSITIONS[spriteType]
-            if spriteType != 7:
+            if spriteType != sprites.rampLeft.value:
                 tempRect2 = pygame.Rect = (0, 0, 0, 0)
             bearRect = pygame.Rect = HIGHLIGHTY_BEAR_RECTANGLE_POSITIONS[bearType]
 
@@ -2192,12 +1876,12 @@ while running:
 
         # loading palettes, and later subtiles and bigtiles
         if LOAD_BUTTON.draw(SCREEN):
-            if spriteType == 22:
-                loadSubtileData(sportType)
-            elif spriteType > 22:
-                loadSubtileDataWithLongHeader()
+            if spriteType == sprites.courseBigtile.value:
+                loadCourseTiles()
+            elif spriteType in smallerSprites:
+                loadSmallGraphics()
             else:
-                loadSubtileDataWithHeader()
+                loadBigGraphics()
             bigtileSelected = 0
             bigtileQuadrantSelected = 0
             infoUpdater(True)
@@ -2205,8 +1889,10 @@ while running:
         # saving palette and tile data to a game
         if SAVE_BUTTON.draw(SCREEN):
             print("Currently, you are saving ", end="")
-            if loadedSpriteType < 17 or loadedSpriteType > 28 or loadedSpriteType == 22:
-                if loadedSpriteType != 22:
+            ### todo:::::::::: :))))))))))))) fixmefixme!!!!!! fix me!!!!!
+            ##### todo: heeeelp! heeeeeeeelp!
+            if loadedSpriteType < 17 or loadedSpriteType > 28 or loadedSpriteType == sprites.courseBigtile.value:
+                if loadedSpriteType != sprites.courseBigtile.value:
                     if loadedSportType in (0, 2):
                         print("the Berenstain family's ", end="")
                     else:
@@ -2214,14 +1900,17 @@ while running:
                 print(f"{SPRITES[loadedSpriteType]} graphics for {SPORTS[loadedSportType]}. ", end="")
             else:
                 print(f"{SPRITES[loadedSpriteType]} graphics. ")
-            if loadedSpriteType in (27, 28):
+            if loadedSpriteType in (sprites.font1.value, sprites.font2.value):
                 print(f"(Note that this palette is for the selected level, and that changing this palette changes only this level's colours.)")
-            if loadedSpriteType == 22:
-                saveThine22Data(loadedSportType)
-            elif loadedSpriteType < 22:
-                saveThineSub22Data()
+
+            if loadedSpriteType == sprites.courseBigtile.value:
+                saveCourseTiles()
+
+            elif loadedSpriteType in smallerSprites:
+                saveSmallGraphics()
+
             else:
-                saveThineSup22Data()
+                saveBigGraphics()
 
         # making pngs of bigtiles
         if PRINT_BUTTON.draw(SCREEN):
@@ -2235,13 +1924,20 @@ while running:
 
             # loop for each bigtile
             for i in range(frameCount):
-                if loadedSpriteType == 22:
+                if loadedSpriteType == sprites.courseBigtile.value:
                     bmpPrintrer22up(i, layerChosen, True)
-                elif loadedSpriteType < 22:
-                    lengthery = layers
-                    if loadedSpriteType in (3, 4, 9) or (loadedSpriteType in (1, 2, 5, 6) and loadedSportType not in (2, 3)):
-                        lengthery -= 1  # shadow hider in eye land
-                    bmpPrintrerSprite(i, lengthery)
+                elif loadedSpriteType in smallerSprites:
+                    layerCount = layers
+
+                    # shadow havers, and sometimes shadow havers (only have shadows in non water levels)
+                    shadowers = (sprites.aUpLeftTrick.value, sprites.bUpLeftTrick.value, sprites.rampJump.value)
+                    # no shadow for these, because these happen on the ground in water levels
+                    sometimesShadow = (sprites.aTrick.value, sprites.bTrick.value, sprites.aUpRightTrick.value, sprites.bUpRightTrick.value)
+                    waterLevels = (2,3) #update this with enums later!!
+
+                    if loadedSpriteType in shadowers or (loadedSpriteType in sometimesShadow and loadedSportType not in waterLevels):
+                        layerCount -= 1  # shadow hider in eye land
+                    bmpPrintrerSprite(i, layerCount)
                 else:
                     bmpPrintrer22up(i, layerChosen, False)
             print("tiles saved to temp folders in levels as bmp files!")
@@ -2281,11 +1977,11 @@ while running:
                     if breakFlag:
                         break
                     for j in range(spriteWidth[layerChosen] * spriteHeight[layerChosen]):
-                        if loadedSpriteType == 22:
+                        if loadedSpriteType == sprites.courseBigtile.value:
                             ox400PainIndex = (i % 0x10) * 2 + (i // 0x10) * 0x40 + (j % 2) + (j // 2) * 0x20  # why must these be stored in such a strange order :(
                             if spriteSubtiles[0][ox400PainIndex] + ((spritePalettes[0][ox400PainIndex] & 0x8) * 0x20) == subtileSelected:
                                 bigtilesUsing.append(str(i) + QUADRANT_MAPPER[j])
-                        elif loadedSpriteType < 22:
+                        elif loadedSpriteType in smallerSprites:
                             ox400PainIndex = i * (spriteWidth[layerChosen] * spriteHeight[layerChosen]) + j
                             if spriteSubtiles[layerChosen][ox400PainIndex] == subtileSelected:
                                 bigtilesUsing.append(f"{str(i)} ({j % spriteWidth[layerChosen]}, {j // spriteWidth[layerChosen]})")
@@ -2325,18 +2021,20 @@ while running:
             if displayBigtileSubtiles:
                 #try:
                 # drawing subtiles on big bigtile:
-                if loadedSpriteType >= 22 or not eyeMode:
+                #### todo: merge part of this with the other layerCount one! maybe make a function for shadowcheck or smth idk
+                if loadedSpriteType in biggerSprites or not eyeMode:
                     subtilesOnBigtile(layerChosen)
                 else:
-                    lengthery = layers
+                    layerCount = layers
+                    # not updating this yet because already happened up there
                     if loadedSpriteType in (3, 4, 9) or (loadedSpriteType in (1, 2, 5, 6) and loadedSportType not in (2, 3)):
-                        lengthery -= 1  # shadow hider in eye land
-                    for i in range(lengthery)[::-1]:
+                        layerCount -= 1  # shadow hider in eye land
+                    for i in range(layerCount)[::-1]:
                         subtilesOnBigtile(i)
                 #except Exception:
                     #print("wawawfa")
 
-            if loadedSpriteType == 22:
+            if loadedSpriteType == sprites.courseBigtile.value:
                 # drawing collision colours
                 for i in range(5):
                     for j in range(3):
@@ -2379,11 +2077,13 @@ while running:
         for sportCount, typeButton in enumerate(sportTypeButtons):
             if typeButton.draw(SCREEN):
                 sportType = sportCount
-                spriteType = spriteCheck(sportType, spriteType)
-                if (spriteType == 7 or spriteType == 8) and (sportType == 0 or sportType == 1 or sportType == 4):
-                    spriteType = 7
+                spriteType = spriteCheck(sportType, spriteType, sprites)
+                # these ramps default left because mirrored sprites
+                if spriteType in (sprites.rampLeft.value, sprites.rampRight.value) and sportType in (0, 1, 4):
+                    spriteType = sprites.rampLeft.value
                     tempRect2 = pygame.Rect = (1004, 596, 18, 18)
-                elif spriteType == 7 and sportType == 5:
+                # idr why dirtboard does this for left ramp?
+                elif spriteType == sprites.rampLeft.value and sportType == 5:
                     tempRect2 = pygame.Rect = (0, 0, 0, 0)
 
         # highlight for sport type
@@ -2391,7 +2091,7 @@ while running:
 
         # drawing subtile palettey extra thingies
         if not subtileMode:
-            if loadedSpriteType >= 22:  # since palettes are connected to tiles i dont think these would be useful for bear sprites
+            if loadedSpriteType in biggerSprites:  # since palettes are connected to tiles i dont think these would be useful for bear sprites
                 for i, thingy in enumerate(subtileyPalleteyThingies):
                     # if i == 0 and loadedSpriteType != 17:
                     #    continue
@@ -2402,7 +2102,7 @@ while running:
                         pygame.draw.rect(SCREEN, (75, 75, 100), rectangle)
 
                 # and the display toggler buttons
-                if loadedSpriteType == 22:
+                if loadedSpriteType == sprites.courseBigtile.value:
                     if TOGGLE_SUBTILES_BUTTON.draw(SCREEN):
                         if thingyWait == 0:
                             displayBigtileSubtiles = not displayBigtileSubtiles
@@ -2420,7 +2120,7 @@ while running:
             SCREEN.blit(thefont.render(f"bigtile: {bigtileSelected}", True, (0, 0, 0)), (18, 8))
 
         # drawing layer button things
-        if loadedSpriteType < 22:
+        if loadedSpriteType in smallerSprites:
             if EYE_BUTTON.draw(SCREEN):
                 if thingyWait == 0:
                     if eyeMode:
