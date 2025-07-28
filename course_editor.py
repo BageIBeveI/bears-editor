@@ -56,9 +56,12 @@ inventoryIndex = 0
 
 effectsOn = False
 
+
 class programModes(Enum):
     courseEditor = 0
     subtileDrawer = 1
+
+
 programMode = programModes.courseEditor.value
 
 clock = pygame.time.Clock()
@@ -72,10 +75,13 @@ bearsCourseCameras = [[0x60, 0x46, 0x14], [0x60, 0x50, 0x50], [0x60, 0x60, 0x46]
 selectOrigCoords = []
 stampArr = [[0]]
 
+
 class drawModes(Enum):
     draw = 0
     bucket = 1
     stamp = 2
+
+
 drawMode = drawModes.draw.value
 
 # various mode 1 or both
@@ -132,7 +138,9 @@ currentSubtileStackInfo = []
 
 # copy paste variables in subtile mode
 subtileClipboardNumber = 0
-subtileClipboard = [["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"], ["00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"]]
+subtileClipboardInvSpots = 10
+subtileHeight = 8 # bytes
+subtileClipboard = [["00000000"] * subtileHeight] * subtileClipboardInvSpots
 
 QUADRANT_MAPPER = {0: "TL", 1: "TR", 2: "BL", 3: "BR"}
 maxSubtiles = []
@@ -189,8 +197,14 @@ class courseIntros(Enum):
     raft = 8
     toboggan = 9
 
-SPRITES = ["moving", "a trick", "b trick", "a up left trick", "b up left trick", "a up right trick", "b up right trick", "left side ramp", "right side ramp", "ramp jump", "mud", "puddle", "ice", "whirlpool", "wipeout", "slowing", "stopped", "HUD difficulties", "HUD sports", "medal", "5x5 selectangle", "4x3 selectangle", "course bigtile", "dev&publisher credit intro", "cool brother bear biking intro", "car intro", "various menu items", "font 1", "font 2", "course intro", "scoreboard", "podium finish"]
+
+SPRITES = ["moving", "a trick", "b trick", "a up left trick", "b up left trick", "a up right trick", "b up right trick",
+           "left side ramp", "right side ramp", "ramp jump", "mud", "puddle", "ice", "whirlpool", "wipeout", "slowing",
+           "stopped", "HUD difficulties", "HUD sports", "medal", "5x5 selectangle", "4x3 selectangle", "course bigtile",
+           "dev&publisher credit intro", "cool brother bear biking intro", "car intro", "various menu items", "font 1",
+           "font 2", "course intro", "scoreboard", "podium finish"]
 BEARTYPES = ["brother", "sister"]
+
 
 class sprites(Enum):
     moving = 0
@@ -229,6 +243,7 @@ class sprites(Enum):
     scoreboard = 30
     podiumFinish = 31
 
+
 spriteType = sprites.courseBigtile.value
 loadedSpriteType = sprites.courseBigtile.value
 
@@ -247,7 +262,16 @@ loadedMenuPagePalette = 0
 layers = 1
 layerChosen = 0
 eyeMode = False
-HIGHLIGHTY_SPRITE_RECTANGLE_POSITIONS = [(981, 631, 18, 18), (1082, 608, 18, 18), (1103, 608, 18, 18), (1082, 629, 18, 18), (1103, 629, 18, 18), (1082, 650, 18, 18), (1103, 650, 18, 18), (972, 596, 18, 18), (1014, 596, 18, 18), (993, 596, 18, 18), (1156, 596, 18, 18), (1177, 596, 18, 18), (1177, 617, 18, 18), (1156, 617, 18, 18), (1167, 638, 18, 18), (1002, 631, 18, 18), (1023, 631, 18, 18), (950, 651, 18, 18), (971, 651, 18, 18), (992, 651, 18, 18), (1013, 651, 18, 18), (1034, 651, 18, 18), (960, 631, 18, 18), (772, 608, 18, 18), (793, 608, 18, 18), (814, 608, 18, 18), (772, 629, 18, 18), (793, 629, 18, 18), (814, 629, 18, 18), (772, 650, 18, 18), (793, 650, 18, 18), (814, 650, 18, 18)]
+HIGHLIGHTY_SPRITE_RECTANGLE_POSITIONS = [(981, 631, 18, 18), (1082, 608, 18, 18), (1103, 608, 18, 18),
+                                         (1082, 629, 18, 18), (1103, 629, 18, 18), (1082, 650, 18, 18),
+                                         (1103, 650, 18, 18), (972, 596, 18, 18), (1014, 596, 18, 18),
+                                         (993, 596, 18, 18), (1156, 596, 18, 18), (1177, 596, 18, 18),
+                                         (1177, 617, 18, 18), (1156, 617, 18, 18), (1167, 638, 18, 18),
+                                         (1002, 631, 18, 18), (1023, 631, 18, 18), (950, 651, 18, 18),
+                                         (971, 651, 18, 18), (992, 651, 18, 18), (1013, 651, 18, 18),
+                                         (1034, 651, 18, 18), (960, 631, 18, 18), (772, 608, 18, 18),
+                                         (793, 608, 18, 18), (814, 608, 18, 18), (772, 629, 18, 18), (793, 629, 18, 18),
+                                         (814, 629, 18, 18), (772, 650, 18, 18), (793, 650, 18, 18), (814, 650, 18, 18)]
 tempRect = pygame.Rect = HIGHLIGHTY_SPRITE_RECTANGLE_POSITIONS[0]
 tempRect2 = pygame.Rect = (0, 0, 0, 0)
 HIGHLIGHTY_BEAR_RECTANGLE_POSITIONS = [(1230, 592, 38, 38), (1230, 633, 38, 38)]
@@ -255,15 +279,15 @@ bearRect = pygame.Rect = HIGHLIGHTY_BEAR_RECTANGLE_POSITIONS[0]
 frameCount = 256
 spriteHeight = [2]
 spriteWidth = [2]
-quadrantPixel = 15
+quadrantPixelSize = 15
 PALETTE_PIXEL = 20
 COLLISION_PIXEL = 40
 SMALLTILE_PIXEL = 4
 THINGY_PIXEL = 40
-numOfSubtiles = len(subtileGraphics[layerChosen])//8
+numOfSubtiles = len(subtileGraphics[layerChosen]) // 8
 NUM_OF_SMALLTILES_DISPLAYED_VT = ((320 + SMALLTILE_PIXEL) // (SMALLTILE_PIXEL * 8))
-NUM_OF_SMALLTILES_DISPLAYED_HZ = (64//SMALLTILE_PIXEL)
-MAX_SCROLL2 = -704 #min(0, -(8 * (numOfSubtiles // (NUM_OF_SMALLTILES_DISPLAYED_HZ)) * SMALLTILE_PIXEL - 290)) ughh whatever ill just hope nobody cares
+NUM_OF_SMALLTILES_DISPLAYED_HZ = (64 // SMALLTILE_PIXEL)
+MAX_SCROLL2 = -704  # min(0, -(8 * (numOfSubtiles // (NUM_OF_SMALLTILES_DISPLAYED_HZ)) * SMALLTILE_PIXEL - 290)) ughh whatever ill just hope nobody cares
 # [((), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ())],
 
 
@@ -277,7 +301,6 @@ subtileMovWait = 0
 bigQuadMovWait = 0
 subtileMovement = 0
 bigQuadMovement = 0
-
 
 # non tile images
 TOBOGGAN_IMAGE = pygame.image.load(f'tile_editor_pictures/tobogganButton.png').convert_alpha()
@@ -332,6 +355,7 @@ hzSportPosShift = [360, 320, 360, 320, 360, 320]
 vtSportPos = [45, 45, 90, 90, 135, 135]
 vtSportPosShift = 360
 """
+
 
 def sportTypeButtonMover(mode, sportTypeButtons):
     sportTypeButtons.clear()
@@ -410,9 +434,13 @@ def gridButtonMaker():
     for byte in allLevelTileCSVs[sportType][sportDifficulty]:
         temp = currentRow * gridTileWidth + scroll
         if -32 <= temp <= screenHeight:  # don't need to draw things off screen
-            SCREEN.blit(imageList[sportType][0][byte], (0 + currentColumn * gridTileWidth, 0 + currentRow * gridTileWidth + scroll))
+            SCREEN.blit(imageList[sportType][0][byte],
+                        (0 + currentColumn * gridTileWidth,
+                         0 + currentRow * gridTileWidth + scroll))
             if effectsOn:
-                SCREEN.blit(imageList[sportType][1][byte], (0 + currentColumn * gridTileWidth, 0 + currentRow * gridTileWidth + scroll))
+                SCREEN.blit(imageList[sportType][1][byte],
+                            (0 + currentColumn * gridTileWidth,
+                             0 + currentRow * gridTileWidth + scroll))
         currentColumn += 1
         if currentColumn == 16:
             currentColumn = 0
@@ -517,8 +545,10 @@ def loadLevel(name, sportType, sportDifficulty):
         levelOffset = BEARS_LEVEL_DATA_OFFSET_RANGES[sportType][sportDifficulty]
         chunkStart = (0xA + sportType * 3 + sportDifficulty) * 0x4000
         sportHeights[sportType][sportDifficulty] = int.from_bytes(tempAllData[chunkStart + 2:chunkStart + 4], "little")
-        bearsCourseHorizontalSpawns[sportType][sportDifficulty] = tempAllData[BEARS_COURSE_HEIGHT_OFFSETS[sportType] + sportDifficulty]
-        bearsCourseCameras[sportType][sportDifficulty] = tempAllData[BEARS_COURSE_HEIGHT_OFFSETS[sportType] + sportDifficulty + 3]
+        bearsCourseHorizontalSpawns[sportType][sportDifficulty] = tempAllData[
+            BEARS_COURSE_HEIGHT_OFFSETS[sportType] + sportDifficulty]
+        bearsCourseCameras[sportType][sportDifficulty] = tempAllData[
+            BEARS_COURSE_HEIGHT_OFFSETS[sportType] + sportDifficulty + 3]
         length = sportHeights[sportType][sportDifficulty] * 0x10
         data = tempAllData[levelOffset:levelOffset + length]
         liszt = []
@@ -539,7 +569,7 @@ def loadCourseTiles():
     global SUBTILE_GRAPHICS_OFFSETS
     global BIGTILE_COLLISION_OFFSETS
 
-    returnVals = subtile_editor_functions.subtile_mode_game_loaders.\
+    returnVals = subtile_editor_functions.subtile_mode_game_loaders. \
         loadCourseBigtileData(lockFileName, lockedFileName, sportType, SUBTILE_GRAPHICS_LENGTHS,
                               SUBTILE_GRAPHICS_OFFSETS, BIGTILE_COLLISION_OFFSETS)
 
@@ -549,7 +579,7 @@ def loadCourseTiles():
         global frameCount
         global spriteHeight
         global spriteWidth
-        global quadrantPixel
+        global quadrantPixelSize
         global loadedSpriteType
         global loadedSportType
         global layerChosen
@@ -565,7 +595,7 @@ def loadCourseTiles():
         frameCount = 256
         spriteHeight = [2]
         spriteWidth = [2]
-        quadrantPixel = 15
+        quadrantPixelSize = 15
         loadedSpriteType = sprites.courseBigtile.value
         loadedSportType = sportType
         layerChosen = 0
@@ -583,11 +613,12 @@ def loadCourseTiles():
         frameCount = 256
         spriteHeight = [2]
         spriteWidth = [2]
-        quadrantPixel = 15
+        quadrantPixelSize = 15
         loadedSpriteType = 22
         loadedSportType = sport
         layerChosen = 0
     """
+
 
 def loadSmallGraphics():
     global lockFileName
@@ -604,7 +635,7 @@ def loadSmallGraphics():
     global SIS_OBJ_PALETTE_OFFSETS
     global MORE_SPRITEISH_OFFSETS
     global MORE_PALETTEY_OFFSETS
-    returnVals = subtile_editor_functions.subtile_mode_game_loaders.\
+    returnVals = subtile_editor_functions.subtile_mode_game_loaders. \
         loadSmallGraphicsData(lockFileName, lockedFileName,
                               sportType, spriteType, bearType, sprites,
                               FAMILYBEAR_SPRITE_OFFSETS, FAMILY_OBJ_PALETTE_OFFSETS, BROBEAR_SPRITE_OFFSETS,
@@ -617,7 +648,7 @@ def loadSmallGraphics():
         global loadedSpriteType
         global loadedSportType
         global loadedBearType
-        global quadrantPixel
+        global quadrantPixelSize
         global frameCount
         global groupNum
         global layers
@@ -631,7 +662,7 @@ def loadSmallGraphics():
         loadedSpriteType = spriteType
         loadedSportType = sportType
         loadedBearType = bearType
-        quadrantPixel = 15
+        quadrantPixelSize = 15
         frameCount = returnVals[1]
         groupNum = returnVals[2]
         layers = returnVals[3]
@@ -641,6 +672,7 @@ def loadSmallGraphics():
         hexCodes = returnVals[7]
         spriteHeight = returnVals[8]
         spriteWidth = returnVals[9]
+
 
 def loadBigGraphics():
     global lockFileName
@@ -654,7 +686,7 @@ def loadBigGraphics():
     global LONG_PALETTE_OFFSETS
     global LONG_GRAPHICS_LENGTHS
 
-    returnVals = subtile_editor_functions.subtile_mode_game_loaders.\
+    returnVals = subtile_editor_functions.subtile_mode_game_loaders. \
         loadBigGraphicsData(lockFileName, lockedFileName, sportType, bearType, sprites, courseIntros, spriteType,
                             LONG_GRAPHICS_OFFSETS, LONG_PALETTE_OFFSETS, LONG_GRAPHICS_LENGTHS)
 
@@ -665,7 +697,7 @@ def loadBigGraphics():
         global loadedSportType
         global loadedBearType
         global frameCount
-        global quadrantPixel
+        global quadrantPixelSize
         global layers
         global loadedMenuPagePalette
         global spriteSubtiles
@@ -679,7 +711,7 @@ def loadBigGraphics():
         loadedSportType = sportType
         loadedBearType = bearType
         frameCount = 1
-        quadrantPixel = 2
+        quadrantPixelSize = 2
         layers = 1
         loadedMenuPagePalette = returnVals[1]
         spriteSubtiles = returnVals[2]
@@ -688,6 +720,7 @@ def loadBigGraphics():
         hexCodes = returnVals[5]
         spriteHeight = returnVals[6]
         spriteWidth = returnVals[7]
+
 
 def saveCourseTiles():
     global loadedSportType
@@ -702,6 +735,7 @@ def saveCourseTiles():
     subtile_editor_functions.subtile_mode_game_savers. \
         saveCourseBigtileData(loadedSportType, hexCodes, subtileGraphics, spritePalettes, bigtileCollisions,
                               spriteSubtiles, lockFileName, lockedFileName)
+
 
 def saveSmallGraphics():
     global hexCodes
@@ -731,6 +765,7 @@ def saveSmallGraphics():
                               BRO_OBJ_PALETTE_OFFSETS, SISBEAR_SPRITE_OFFSETS, SIS_OBJ_PALETTE_OFFSETS,
                               MORE_SPRITEISH_OFFSETS, MORE_PALETTEY_OFFSETS)
 
+
 def saveBigGraphics():
     global hexCodes
     global lockFileName
@@ -752,133 +787,10 @@ def saveBigGraphics():
                             spriteSubtiles, spritePalettes, loadedBearType, sprites, loadedMenuPagePalette,
                             courseIntros, LONG_GRAPHICS_OFFSETS, LONG_PALETTE_OFFSETS)
 
-def bmpPrintrer22up(bigtile, layaer, equalTo22):
-    guaug = []
-    for j in (range(spriteHeight[layaer])[::-1]):  # first j will add the bottom subtiles to guaug, second j will add the top ones
-        if equalTo22:
-            ox400er = (bigtile % 0x10) * 2 + (bigtile // 0x10) * 0x40 + (j) * 0x20  # weirdo address calculator because it's stored all messily
-        else:
-            ox400er = bigtile * (spriteWidth[0]*spriteHeight[0]) + j * (spriteWidth[0])
-        P = spritePalettes[0][ox400er:ox400er + spriteWidth[0]]  # palette data at address and address + 1
-        palettes = [pal & 7 for pal in P]  # and 7 to get the palette number (stored in bits 0 1 and 2)
-        palettecode = []
-        graphicsies = []
-        for subtileHzNum in range(spriteWidth[layaer]):
-            for l in range(4):  # converting hex code palette data into bitmap file palette data
-                RGB = hexCodes[palettes[subtileHzNum] * 4 + l]
-                G = bin(RGB[1] >> 3)[2:].zfill(5)  # next is a lil different as BMP uses GGGBBBBB XRRRRRGG
-                temp = G[2:].zfill(3) + bin(RGB[2] >> 3)[2:].zfill(5) + "0" + bin(RGB[0] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
-                bitey = int(temp, 2).to_bytes(2, "big")
-                palettecode.append(bitey)
-
-            subtile = spriteSubtiles[0][ox400er + subtileHzNum] + (P[subtileHzNum] & 0x8) * 0x20  # add 0x100, the 02 is just b/c multed with 0x8 cuz less lines, so felt like it
-            graphicsies.append(subtileGraphics[layaer][subtile * 8:subtile * 8 + 8][::-1])  # stores quaternary row graphics, so need to get the 8 starting at s*8
-        for subtileHzNum in range(spriteWidth[layaer]):
-            if spritePalettes[0][ox400er + subtileHzNum] & 0x40:  # vt flip
-                graphicsies[subtileHzNum] = graphicsies[subtileHzNum][::-1]
-            if spritePalettes[0][ox400er + subtileHzNum] & 0x20:  # hz flip
-                for l in range(8):
-                    graphicsies[subtileHzNum][l] = graphicsies[subtileHzNum][l][::-1]
-        for byteNum in range(8):
-            for subtileHzNum in range(spriteWidth[layaer]):
-                for bit in graphicsies[subtileHzNum][byteNum]:  # graphicsies[0] has 8 bytes in its list (contains the left subtile's data.) ([1] has 8 bytes for the right subtile)
-                    guaug.append(palettecode[int(bit) + 4 * subtileHzNum])  # would += to a b'' but that takes super long
-    with open(f"tiles/temptiles/tile{str(bigtile).zfill(3)}.bmp", "wb") as bmp:
-        bmp.write(b'BM\x00\x00\x00\x00\x00\x00\x00\x006\x00\x00\x00(\x00\x00\x00' + (8 * spriteWidth[layaer]).to_bytes(4, "little") + (8 * spriteHeight[layaer]).to_bytes(4,"little") + b'\x01\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b''.join(guaug))
-    ######
-    ###### now collisions
-    if equalTo22:
-        gorg = b''
-        for j in (range(spriteHeight[layaer])[::-1]):  # first j will add the bottom subtiles to guaug, second j will add the top ones (no idea why it needs to be 0 1, it just doesn't work as 1, 0 though my logic sayc it should wasawawawa)
-            ox400er = bigtile * 4 + j * 2  # normal this time, since this only works for 22
-            C = bigtileCollisions[ox400er:ox400er + spriteWidth[layaer]]
-            wwwwww = b''
-            for k in range(spriteWidth[layaer]):
-                for l, key in enumerate(COLLISION_COLOUR_MAPPER):
-                    if key == C[k]:
-                        RGB = colours[l]
-                        break
-                G = bin(RGB[1] >> 3)[2:].zfill(5)  # next is a lil different as BMP uses GGGBBBBB XRRRRRGG
-                temp = G[2:].zfill(3) + bin(RGB[2] >> 3)[2:].zfill(5) + "0" + bin(RGB[0] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
-                wwwwww += (int(temp, 2).to_bytes(2, "big") * 8)
-            gorg += (wwwwww) * 8
-            i
-        with open(f"tiles/efftemptiles/tile{str(i).zfill(3)}.bmp", "wb") as bmp:
-            bmp.write(b'BM\x00\x00\x00\x00\x00\x00\x00\x006\x00\x00\x00(\x00\x00\x00' + (8 * spriteWidth[layaer]).to_bytes(4, "little") + (8 * spriteHeight[layaer]).to_bytes(4, "little") + b'\x01\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' + gorg)
-
-def bmpPrintrerSprite(frame, numberOLayers):
-    guaug = []
-    maxWidth = max(spriteWidth)
-    dummyColour = b'\xFA\x69'
-    for j in (range(spriteHeight[0])[::-1]):  # first j will add the bottom subtiles to guaug, second j will add the top ones
-        palettecode = []
-        graphicsies = []
-        palettes = []
-        for layaer in range(numberOLayers):
-            ox400er = frame * spriteWidth[layaer] * spriteHeight[layaer] + j * spriteWidth[layaer]
-            palettes.append([spritePalettes[layaer][subtileNumbah] for subtileNumbah in spriteSubtiles[layaer][ox400er:ox400er + spriteWidth[layaer]]])  # not using P since these tend not to use the extra bits in palette stuff
-            tempGraphicsies = []
-            tempPalettecode = []
-            for k in range(spriteWidth[layaer]):
-                for l in range(4):  # converting hex code palette data into bitmap file palette data
-                    #try:
-                    RGB = hexCodes[palettes[layaer][k] * 4 + l]
-                    #except Exception:
-                    #    print("aweawawr")
-                    G = bin(RGB[1] >> 3)[2:].zfill(5)  # next is a lil different as BMP uses GGGBBBBB XRRRRRGG
-                    temp = G[2:].zfill(3) + bin(RGB[2] >> 3)[2:].zfill(5) + "0" + bin(RGB[0] >> 3)[2:].zfill(5) + G[0:2].zfill(2)
-                    bitey = int(temp, 2).to_bytes(2, "big")
-                    tempPalettecode.append(bitey)
-
-                subtile = spriteSubtiles[layaer][ox400er + k]
-                tempGraphicsies.append(subtileGraphics[layaer][subtile * 8:subtile * 8 + 8][::-1])  # stores quaternary row graphics, so need to get the 8 starting at s*8
-            thingeymabobbert = [dummyColour] * (8 * maxWidth * 8)
-            palettecode.append(tempPalettecode)
-            graphicsies.append(tempGraphicsies)
-
-        for subtileVt in range(8):
-            for subtileHrz in range(maxWidth):
-                for bitNum in range(8):
-                    for layaer in range(numberOLayers):
-                        bitt = graphicsies[layaer][subtileHrz][subtileVt][bitNum]
-                        if bitt != "0" and thingeymabobbert[subtileVt * (maxWidth * 8) + subtileHrz * 8 + bitNum] == dummyColour:
-                            #try:
-                            thingeymabobbert[subtileVt * (maxWidth * 8) + subtileHrz * 8 + bitNum] = palettecode[layaer][int(bitt) + 4 * subtileHrz]
-                            #except Exception:
-                            #    print("waeoaw")
-                            break  # can break because after placing a colour, no lower layer can overwrite it, so saves a lil time
-                # for bit in graphicsies[l][k]:  # graphicsies[0] has 8 bytes in its list (contains the left subtile's data.) ([1] has 8 bytes for the right subtile)
-
-        guaug += thingeymabobbert  # would += to a b'' but that takes super long
-    with open(f"tiles/temptiles/tile{str(frame).zfill(3)}.bmp", "wb") as bmp:
-        bmp.write(b'BM\x00\x00\x00\x00\x00\x00\x00\x006\x00\x00\x00(\x00\x00\x00' + (8 * spriteWidth[layaer]).to_bytes(4, "little") + (8 * spriteHeight[layaer]).to_bytes(4, "little") + b'\x01\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' + b''.join(guaug))
-
-
-# makes printed tiles from bmp into png
-def pngify(name):
-    if not os.path.exists(f"tiles/{name}"):
-        os.makedirs(f"tiles/{name}")
-    count = 0
-    for bitmap in glob.glob(f"tiles/temptiles/*.bmp"):
-        Image.open(bitmap).save(f"tiles/{name}/tile{count}.png")
-        count += 1
-        if count >= frameCount:
-            break
-
-    if loadedSpriteType == sprites.courseBigtile.value:
-        if not os.path.exists(f"tiles/{name}_effects"):
-            os.makedirs(f"tiles/{name}_effects")
-        count = 0
-        for bitmap in glob.glob(f"tiles/efftemptiles/*.bmp"):
-            Image.open(bitmap).save(f"tiles/{name}_effects/tile{count}.png")
-            count += 1
-            if count >= frameCount:
-                break
-
 
 # draws all the tiny top right subtiles in tile mode
 def tinySubtileDraw(subGraphics, hexCodes, palSelected, scroll):
-    for k in range(512//NUM_OF_SMALLTILES_DISPLAYED_HZ):  # max 512 tiles, so 32 high
+    for k in range(512 // NUM_OF_SMALLTILES_DISPLAYED_HZ):  # max 512 tiles, so 32 high
         for l in range(NUM_OF_SMALLTILES_DISPLAYED_HZ):  # 16 wide usually
             for i in range(8):  # and subtiles are 8x8px, handled by i and j
 
@@ -896,50 +808,80 @@ def tinySubtileDraw(subGraphics, hexCodes, palSelected, scroll):
                         colourSelected = int(subGraphics[((k * NUM_OF_SMALLTILES_DISPLAYED_HZ) + l) * 8 + i][j])
                     except Exception:  # outta tiles to draw
                         return
-                    if loadedSpriteType not in smallerSprites: #course selections or longs
-                        pygame.draw.rect(SCREEN, hexCodes[colourSelected + palSelected * 4], rectangle)  # gotta use paletteSelected for this because subtiles aren't connected to one palette, rather a palette is assigned upon bigtile construction
+                    if loadedSpriteType not in smallerSprites:  # course selections or longs
+                        pygame.draw.rect(SCREEN,
+                                         hexCodes[colourSelected + palSelected * 4],
+                                         rectangle)  # gotta use paletteSelected for this because subtiles aren't connected to one palette, rather a palette is assigned upon bigtile construction
                     else:
                         palselels = spritePalettes[layerChosen][(l) + (k * NUM_OF_SMALLTILES_DISPLAYED_HZ)]
-                        pygame.draw.rect(SCREEN, hexCodes[colourSelected + palselels * 4], rectangle)  # nevermind lol the non-connectedness doesn't apply for bear sprites and stuff because aaaarhghhsrh
+                        pygame.draw.rect(SCREEN,
+                                         hexCodes[colourSelected + palselels * 4],
+                                         rectangle)  # nevermind lol the non-connectedness doesn't apply for bear sprites and stuff because aaaarhghhsrh
 
 
-def subtilesOnBigtile(layaaaa):
-    for i in range(spriteHeight[layaaaa]):
-        for j in range(spriteWidth[layaaaa]):
-            hz_range = range(8)
-            vt_range = range(8)
+def subtilesOnBigtile(layer):
+    pixelsInASubtile = 8
+    drawnBigtileCoords = (0, 50)  # 50 as a y coord to keep it outta the corner
+    # 8x8 pixels in a subtile
+    hz_range = range(pixelsInASubtile)
+    vt_range = range(pixelsInASubtile)
+
+    class coord(Enum):
+        x = 0
+        y = 1
+
+    for subtileRow in range(spriteHeight[layer]):
+        ySubtileProgress = subtileRow * quadrantPixelSize * pixelsInASubtile
+        for subtileColumn in range(spriteWidth[layer]):
+            xSubtileProgress = subtileColumn * quadrantPixelSize * pixelsInASubtile
+
+            # getting an index, bank, and palette per subtile
             if loadedSpriteType == sprites.courseBigtile.value:
-                ox400LengthStartIndex = bigtileSelected * 2 + j + (i * 0x20) + (bigtileSelected // 16) * 0x20
-                bankSwitch = (spritePalettes[0][ox400LengthStartIndex] & 0x8) * 0x100
-                palalala = (spritePalettes[0][ox400LengthStartIndex])
+                bigtileSubtileIndex0x400 = bigtileSelected * spriteWidth[layer] + subtileColumn + (subtileRow * 0x20) + (bigtileSelected // 0x10) * 0x20
+                bankSwitch = (spritePalettes[layer][bigtileSubtileIndex0x400] & 0x8) * 0x100
+                subtilePalette = (spritePalettes[layer][bigtileSubtileIndex0x400])
             elif loadedSpriteType in smallerSprites:
-                ox400LengthStartIndex = bigtileSelected * (spriteWidth[layaaaa] * spriteHeight[layaaaa]) + i * spriteWidth[layaaaa] + j
+                bigtileSubtileIndex0x400 = bigtileSelected * (spriteWidth[layer] * spriteHeight[layer]) + subtileRow * spriteWidth[layer] + subtileColumn
                 bankSwitch = 0
-                palalala = (spritePalettes[layaaaa][spriteSubtiles[layaaaa][ox400LengthStartIndex]])  # for these, colours are connected to subtiles, guh ...
-            else:
-                ox400LengthStartIndex = i * spriteWidth[layaaaa] + j
-                bankSwitch = (spritePalettes[0][ox400LengthStartIndex] & 0x8) * 0x100
-                palalala = (spritePalettes[0][ox400LengthStartIndex])
+                subtilePalette = (spritePalettes[layer][spriteSubtiles[layer][bigtileSubtileIndex0x400]])  # for these, colours are connected to subtiles, guh ...
+            else:  # in big ones
+                bigtileSubtileIndex0x400 = subtileRow * spriteWidth[layer] + subtileColumn
+                bankSwitch = (spritePalettes[layer][bigtileSubtileIndex0x400] & 0x8) * 0x100
+                subtilePalette = (spritePalettes[layer][bigtileSubtileIndex0x400])
 
-            if palalala & 0x20 == 0x20:
+            # palette flips
+            if subtilePalette & 0x20 == 0x20:  # hz flip
                 hz_range = hz_range[::-1]
-            if palalala & 0x40 == 0x40:  # vt flip
+            if subtilePalette & 0x40 == 0x40:  # vt flip
                 vt_range = vt_range[::-1]
-            for k, K in enumerate(vt_range):
-                for l, L in enumerate(hz_range):
-                    rectangle = pygame.Rect = ((l * quadrantPixel + j * quadrantPixel * 8), (k * quadrantPixel + i * quadrantPixel * 8 + 50), quadrantPixel, quadrantPixel)
-                    # try:
-                    theSubtileInQuestion = spriteSubtiles[layaaaa][ox400LengthStartIndex]
-                    #try:
-                    zeroOneTwoThreeColour = int(subtileGraphics[layaaaa][theSubtileInQuestion * 8 + K + bankSwitch][L])
-                    #except Exception:
-                    #    print("warawr")
-                    #    break
+
+            for pixelYVal in vt_range:
+                yProgress = pixelYVal * quadrantPixelSize
+                for pixelXVal in hz_range:
+                    xProgress = pixelXVal * quadrantPixelSize
+                    rectangle = pygame.Rect = (
+                        (xProgress + xSubtileProgress + drawnBigtileCoords[coord.x.value]),
+                        (yProgress + ySubtileProgress + drawnBigtileCoords[coord.y.value]),
+                        quadrantPixelSize,
+                        quadrantPixelSize)
+
+                    theSubtileInQuestion = spriteSubtiles[layer][bigtileSubtileIndex0x400]
+                    byteIndex = theSubtileInQuestion * pixelsInASubtile + pixelYVal + bankSwitch
+                    zeroOneTwoThreeColour = int(subtileGraphics[layer][byteIndex][pixelXVal])  # gettin that quaternary byte
+
+                    # transparent colour zero
                     if eyeMode and zeroOneTwoThreeColour == 0:
                         continue
-                    pygame.draw.rect(SCREEN, hexCodes[(palalala & 7) * 4 + zeroOneTwoThreeColour], rectangle)  # what a Mess. palette*4 to get to the right palette, + 0 1 2 or 3 (found as 8-long strings in subtileGraphics. the right index is at the subtile number (in bigtilesubtiles at the ox400 index, which is an antequated name from when this only did bigtiles for levels) (*8 because each subtile has 64 pixels, so 8 of the 8-longs.) ([L] because 8-long string so need an index of it, and +K because 8 8-longs, but these can be from 0 to 7 or 7 to 0 if flips are needed.) (the &* *0x100 thing is to change the subtile bank)
-                    # except Exception:
-                    #    continue
+                    # 0123 colours are in batches of 8
+                    colourBatchIndex = (subtilePalette & 7) * 4
+                    colourIndex = colourBatchIndex + zeroOneTwoThreeColour
+                    pygame.draw.rect(SCREEN, hexCodes[colourIndex], rectangle)
+            ### old comment! K and L used to refer to pixelYVal and pixelXVal in byteIndex i think? might be useful for future me but for now it's raving mad ramblings
+            # what a Mess. palette*4 to get to the right palette, + 0 1 2 or 3 (found as 8-long strings in subtileGraphics.
+            # the right index is at the subtile number (in bigtilesubtiles at the ox400 index, which is an
+            # antequated name from when this only did bigtiles for levels) (*8 because each subtile has 64 pixels,
+            # so 8 of the 8-longs.) ([L] because 8-long string so need an index of it, and +K because 8 8-longs,
+            # but these can be from 0 to 7 or 7 to 0 if flips are needed.) (the &* *0x100 thing is to change the subtile bank)
 
 
 # todo probably use this method more often? everything is so janky and spaghettish
@@ -985,6 +927,7 @@ def infoUpdater(stackReset):
         redoStack = []
     return
 
+
 def subtileStackUpdate(msg):
     global currentSubtileStackInfo
     global undoStack
@@ -999,7 +942,6 @@ def subtileStackUpdate(msg):
 
 
 def spriteCheck(sport, sprite, spriteEnum):
-    
     if sport < 2:  # snowy bad ones
         if sprite in (spriteEnum.mud.value, spriteEnum.puddle.value, spriteEnum.whirlpool.value, spriteEnum.slowing.value, spriteEnum.stopped.value):
             sprite = spriteEnum.moving.value
@@ -1068,8 +1010,9 @@ while running:
                 infoWait = 0
 
         infoMode = not infoMode
-        pygame.time.wait(200) #no waiter thing since it doesn't affect the fps counter here and tbh i think the wait is more efficient, just changed it in other places because it feels worse
-        #seems to be fine without any deltatime chicanery, maybe that's baked into wait idk
+        pygame.time.wait(200)
+        # no waiter thing since it doesn't affect the fps counter here and tbh i think the wait is more efficient, just changed it in other places because it feels worse
+        # seems to be fine without any deltatime chicanery, maybe that's baked into wait idk
 
     #
     # COURSE EDITOR MODE (for editing course layout)
@@ -1093,7 +1036,8 @@ while running:
 
                 # inventory slot chooser. keys map to 0-9 for inv slots
                 try:
-                    buttonPressedToIndex = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9, pygame.K_0].index(event.key)
+                    buttonPressedToIndex = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6,
+                                            pygame.K_7, pygame.K_8, pygame.K_9, pygame.K_0].index(event.key)
                     inventoryIndex = buttonPressedToIndex
                     chosenTile = tileInvPictures[buttonPressedToIndex]
                 except ValueError:
@@ -1167,7 +1111,8 @@ while running:
             pygame.draw.line(SCREEN, (255, 0, 0), (0, lineHeight), (511, lineHeight), 5)
 
         # and the spawn rectangle
-        spawnRect = pygame.rect = (bearsCourseHorizontalSpawns[sportType][sportDifficulty] * 2 - 16, sportHeights[sportType][sportDifficulty] * 32 + scroll * 1 - 64, 32, 32)
+        spawnRect = pygame.rect = (bearsCourseHorizontalSpawns[sportType][sportDifficulty] * 2 - 16,
+                                   sportHeights[sportType][sportDifficulty] * 32 + scroll * 1 - 64, 32, 32)
         pygame.draw.rect(SCREEN, (255, 0, 0), spawnRect, 2)
 
         # camera test
@@ -1183,14 +1128,14 @@ while running:
                 else:
                     effectsOn = True
                 imageList[sportType] = tileImageStorer(SPORTS[sportType])
-                buttonWait = (frameseys+1)//8
+                buttonWait = (frameseys + 1) // 8
             else:
                 buttonWait -= 1
             # grid vision toggle
         if GRID_BUTTON.draw(SCREEN):
             if buttonWait == 0:
                 checkerenate = not checkerenate
-                buttonWait = (frameseys+1)//6
+                buttonWait = (frameseys + 1) // 6
             else:
                 buttonWait -= 1
         if checkerenate:
@@ -1213,7 +1158,9 @@ while running:
                 if proceed:
                     with open(f"levels/modified_levels/{filename}.csv", "w", newline="") as file:
                         writenator = csv.writer(file, delimiter=",")
-                        writenator.writerow([sportHeights[sportType][sportDifficulty], bearsCourseHorizontalSpawns[sportType][sportDifficulty], bearsCourseCameras[sportType][sportDifficulty]])
+                        writenator.writerow([sportHeights[sportType][sportDifficulty],
+                                             bearsCourseHorizontalSpawns[sportType][sportDifficulty],
+                                             bearsCourseCameras[sportType][sportDifficulty]])
                         for i in range(0, len(CSVList), 16):
                             writenator.writerow(CSVList[i:i + 16])
                         print("File saved.")
@@ -1376,9 +1323,12 @@ while running:
                 if drawMode == drawModes.draw.value and mouseOverTile != chosenTile:
                     mouseOverTile = chosenTile
                 elif drawMode == drawModes.bucket.value and mouseOverTile != chosenTile:
-                    course_editor_functions.drawing_funcs.paint(mouseX, mouseY, chosenTile, mouseOverTile, allLevelTileCSVs[sportType][sportDifficulty], sportHeights[sportType][sportDifficulty])
+                    course_editor_functions.drawing_funcs.paint(mouseX, mouseY, chosenTile, mouseOverTile,
+                                                                allLevelTileCSVs[sportType][sportDifficulty],
+                                                                sportHeights[sportType][sportDifficulty])
                 elif drawMode == drawModes.stamp.value:
-                    course_editor_functions.drawing_funcs.stamp(mouseX, mouseY, stampArr, sportHeights, allLevelTileCSVs, sportType, sportDifficulty)
+                    course_editor_functions.drawing_funcs.stamp(mouseX, mouseY, stampArr, sportHeights,
+                                                                allLevelTileCSVs, sportType, sportDifficulty)
             elif pygame.mouse.get_pressed()[1] == 1 and mouseOverTile != chosenTile:
                 chosenTile = mouseOverTile
                 tileInvPictures[inventoryIndex] = chosenTile
@@ -1386,15 +1336,22 @@ while running:
                 if selectOrigCoords == []:
                     selectOrigCoords = [mouseX, mouseY]
                 selectNewCoords = [mouseX, mouseY]
-                selectangle = pygame.rect = (min(selectOrigCoords[0], selectNewCoords[0]) * 32, min(selectOrigCoords[1], selectNewCoords[1]) * 32 + scroll, abs(selectOrigCoords[0] - selectNewCoords[0]) * 32 + 32, abs(selectOrigCoords[1] - selectNewCoords[1]) * 32 + 32)
+                selectangle = pygame.rect = (min(selectOrigCoords[0], selectNewCoords[0]) * 32,
+                                             min(selectOrigCoords[1], selectNewCoords[1]) * 32 + scroll,
+                                             abs(selectOrigCoords[0] - selectNewCoords[0]) * 32 + 32,
+                                             abs(selectOrigCoords[1] - selectNewCoords[1]) * 32 + 32)
                 pygame.draw.rect(SCREEN, (100, 255, 100), selectangle, 2)
             elif pygame.mouse.get_pressed()[2] == 0:
                 if selectOrigCoords != []:
                     stampArr = []
                     horizLen = abs(selectOrigCoords[0] - selectNewCoords[0]) + 1
-                    topLeft = [min(selectOrigCoords[0], selectNewCoords[0]), min(selectOrigCoords[1], selectNewCoords[1])]
+                    topLeft = [min(selectOrigCoords[0],
+                                   selectNewCoords[0]),
+                                   min(selectOrigCoords[1],
+                                   selectNewCoords[1])]
                     for i in range(abs(selectOrigCoords[1] - selectNewCoords[1]) + 1):
-                        stampArr.append(allLevelTileCSVs[sportType][sportDifficulty][topLeft[0] + (topLeft[1] + i) * 16:topLeft[0] + horizLen + (topLeft[1] + i) * 16])
+                        stampArr.append(allLevelTileCSVs[sportType][sportDifficulty][
+                            topLeft[0] + (topLeft[1] + i) * 16:topLeft[0] + horizLen + (topLeft[1] + i) * 16])
                 selectOrigCoords = []
 
         # buttons for drawing mode
@@ -1583,7 +1540,7 @@ while running:
                     bigtileSelected -= 1
                 if scrollRight:
                     bigtileSelected += 1
-                scrollLRWait = ((frameseys+1)//25) // (scrollSpeed ** 4)
+                scrollLRWait = ((frameseys + 1) // 25) // (scrollSpeed ** 4)
                 if waiter or loadedSpriteType != sprites.courseBigtile.value:
                     scrollLRWait *= 4
                     waiter = False
@@ -1595,10 +1552,10 @@ while running:
                 bigtileSelected = 0
             infoUpdater(False)
 
-        if scroll2 < MAX_SCROLL2: #-(320 + 1344*SMALLTILE_PIXEL//NUM_OF_SMALLTILES_DISPLAYED_HZ): #tried to make this work with smalltilepixel but idk how, o well
-            scroll2 = MAX_SCROLL2 #-(320 + 1344*SMALLTILE_PIXEL//NUM_OF_SMALLTILES_DISPLAYED_HZ)
+        if scroll2 < MAX_SCROLL2:  # -(320 + 1344*SMALLTILE_PIXEL//NUM_OF_SMALLTILES_DISPLAYED_HZ): #tried to make this work with smalltilepixel but idk how, o well
+            scroll2 = MAX_SCROLL2  # -(320 + 1344*SMALLTILE_PIXEL//NUM_OF_SMALLTILES_DISPLAYED_HZ)
 
-            #0, 704, 3776 for 2, 4, 8. trick e i say, verily
+            # 0, 704, 3776 for 2, 4, 8. trick e i say, verily
 
         if scroll2 > 0:
             scroll2 = 0
@@ -1623,7 +1580,7 @@ while running:
                         subtileSelected += 1
                         if subtileSelected >= len(subtileGraphics[layerChosen]) // 8:
                             subtileSelected = (len(subtileGraphics[layerChosen]) // 8) - 1
-                subtileMovWait = ((frameseys+1)//8) // (scrollSpeed ** 3)
+                subtileMovWait = ((frameseys + 1) // 8) // (scrollSpeed ** 3)
                 subtileStackUpdate("subtile mov")
                 infoUpdater(False)
                 currentSubtileStackInfo = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
@@ -1651,7 +1608,7 @@ while running:
                         bigtileQuadrantSelected += 1
                         if bigtileQuadrantSelected >= spriteWidth[layerChosen] * spriteHeight[layerChosen]:
                             bigtileQuadrantSelected = (spriteWidth[layerChosen] * spriteHeight[layerChosen]) - 1
-                bigQuadMovWait = ((frameseys+1)//8) // scrollSpeed**2
+                bigQuadMovWait = ((frameseys + 1) // 8) // scrollSpeed ** 2
                 subtileStackUpdate("bigquad mov")
                 infoUpdater(False)
                 currentSubtileStackInfo = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
@@ -1686,16 +1643,16 @@ while running:
                     spritePalettes[0][bigtileQuadrantSelected] = (spritePalettes[0][bigtileQuadrantSelected] & 0b11111000) | paletteSelected
 
             # clicking a big subtile thingy to change it
-            elif subtileMode and 0 < mouseX < (quadrantPixel * 2 * 8) and 50 < mouseY < 50 + (quadrantPixel * 2 * 8) and (loadedSpriteType in biggerSprites or subtileSelected != 0):  # end part is so the ghost tile isn't editable
-                colnum = ((mouseX) // (quadrantPixel * 2))
-                rownum = ((mouseY - 50) // (quadrantPixel * 2))
+            elif subtileMode and 0 < mouseX < (quadrantPixelSize * 2 * 8) and 50 < mouseY < 50 + (quadrantPixelSize * 2 * 8) and (loadedSpriteType in biggerSprites or subtileSelected != 0):  # end part is so the ghost tile isn't editable
+                colnum = ((mouseX) // (quadrantPixelSize * 2))
+                rownum = ((mouseY - 50) // (quadrantPixelSize * 2))
                 index = subtileSelected * 8 + rownum
                 if index < len(subtileGraphics[layerChosen]) + 1:
                     subtileGraphics[layerChosen][index] = subtileGraphics[layerChosen][index][0:colnum] + str(colourSelected) + subtileGraphics[layerChosen][index][colnum + 1:]
 
             # clicking a big bigtile quadrant
-            elif not subtileMode and 0 < mouseX < (quadrantPixel * 8 * spriteWidth[layerChosen]) and 50 < mouseY < 50 + (quadrantPixel * 8 * spriteHeight[layerChosen]):
-                bigtileQuadrantSelected = mouseX // (quadrantPixel * 8) + ((mouseY - 50) // (quadrantPixel * 8)) * spriteWidth[layerChosen]
+            elif not subtileMode and 0 < mouseX < (quadrantPixelSize * 8 * spriteWidth[layerChosen]) and 50 < mouseY < 50 + (quadrantPixelSize * 8 * spriteHeight[layerChosen]):
+                bigtileQuadrantSelected = mouseX // (quadrantPixelSize * 8) + ((mouseY - 50) // (quadrantPixelSize * 8)) * spriteWidth[layerChosen]
                 subtileStackUpdate("bigquad click")
                 infoUpdater(False)
                 currentSubtileStackInfo = subtileGraphics[layerChosen][subtileSelected * 8:subtileSelected * 8 + 8]
@@ -1756,7 +1713,7 @@ while running:
                     elif 395 + THINGY_PIXEL * 2 + 20 < mouseY < 395 + THINGY_PIXEL * 3 + 20:  # button 3 (hz flip)
                         subtileyPalleteyThingies[2] = not subtileyPalleteyThingies[2]
                         spritePalettes[0][ox400IndexThingForHere] ^= 0x20
-                    thingyWait = (frameseys+1)//6
+                    thingyWait = (frameseys + 1) // 6
                 else:
                     thingyWait -= 1
 
@@ -1923,23 +1880,33 @@ while running:
             print("(Remember that if the temptiles or efftemptiles folders are already full, then there may be extra tiles when saving PNGs)")
 
             # loop for each bigtile
-            for i in range(frameCount):
+            for frame in range(frameCount):
                 if loadedSpriteType == sprites.courseBigtile.value:
-                    bmpPrintrer22up(i, layerChosen, True)
+                    subtile_editor_functions.subtile_mode_bmp_png_prints. \
+                        bmpPrintNonSmallSprites(frame, (loadedSpriteType == sprites.courseBigtile.value), spriteWidth,
+                                                spriteHeight, spritePalettes, hexCodes, spriteSubtiles, subtileGraphics,
+                                                bigtileCollisions, COLLISION_COLOUR_MAPPER, colours)
                 elif loadedSpriteType in smallerSprites:
                     layerCount = layers
 
                     # shadow havers, and sometimes shadow havers (only have shadows in non water levels)
                     shadowers = (sprites.aUpLeftTrick.value, sprites.bUpLeftTrick.value, sprites.rampJump.value)
                     # no shadow for these, because these happen on the ground in water levels
-                    sometimesShadow = (sprites.aTrick.value, sprites.bTrick.value, sprites.aUpRightTrick.value, sprites.bUpRightTrick.value)
-                    waterLevels = (2,3) #update this with enums later!!
+                    sometimesShadow = (sprites.aTrick.value, sprites.bTrick.value,
+                                       sprites.aUpRightTrick.value, sprites.bUpRightTrick.value)
+                    waterLevels = (2, 3)  # update this with enums later!!
 
                     if loadedSpriteType in shadowers or (loadedSpriteType in sometimesShadow and loadedSportType not in waterLevels):
                         layerCount -= 1  # shadow hider in eye land
-                    bmpPrintrerSprite(i, layerCount)
+                    subtile_editor_functions.subtile_mode_bmp_png_prints. \
+                        bmpPrintSmallSprites(frame, layerCount, spriteHeight, spriteWidth, spritePalettes,
+                                             spriteSubtiles, hexCodes,
+                                             subtileGraphics)
                 else:
-                    bmpPrintrer22up(i, layerChosen, False)
+                    subtile_editor_functions.subtile_mode_bmp_png_prints. \
+                        bmpPrintNonSmallSprites(frame, (loadedSpriteType == sprites.courseBigtile.value), spriteWidth,
+                                                spriteHeight, spritePalettes, hexCodes, spriteSubtiles, subtileGraphics,
+                                                bigtileCollisions, COLLISION_COLOUR_MAPPER, colours)
             print("tiles saved to temp folders in levels as bmp files!")
             if lockFileName:
                 name = lockedFileName + "_" + SPRITES[loadedSpriteType] + "_" + CONST_SPORTS[loadedSportType]
@@ -1952,7 +1919,8 @@ while running:
                         go_ahead = False
                 if go_ahead:
                     print("working...")
-                    pngify(name)
+                    subtile_editor_functions.subtile_mode_bmp_png_prints. \
+                        pngify(name, frameCount, (loadedSpriteType == sprites.courseBigtile.value))
                     print("done! :)")
                 else:
                     print("no changes have been made.")
@@ -1993,33 +1961,42 @@ while running:
                     print(f"subtile {subtileSelected} is never used in any bigtile.")
                 else:
                     print(f"subtile {subtileSelected} is used in these bigtiles: {[i for i in bigtilesUsing]}")
-                subtileUsageWait = (frameseys+1)//4
+                subtileUsageWait = (frameseys + 1) // 4
             else:
                 subtileUsageWait -= 1
 
         # drawing palettes and highlight
         for i in range(0x20):
-            rectangle = pygame.Rect = ((i * PALETTE_PIXEL) % (PALETTE_PIXEL * 4) + 750, (i // 4) * PALETTE_PIXEL + 385, PALETTE_PIXEL, PALETTE_PIXEL)
+            rectangle = pygame.Rect = ((i * PALETTE_PIXEL) % (PALETTE_PIXEL * 4) + 750,
+                                       (i // 4) * PALETTE_PIXEL + 385,
+                                       PALETTE_PIXEL,
+                                       PALETTE_PIXEL)
             pygame.draw.rect(SCREEN, hexCodes[i], rectangle)
         # and highlight the selected one
-        highlightangle = (PALETTE_PIXEL * colourSelected + 750, PALETTE_PIXEL * paletteSelected + 385, PALETTE_PIXEL, PALETTE_PIXEL)
+        highlightangle = (PALETTE_PIXEL * colourSelected + 750,
+                          PALETTE_PIXEL * paletteSelected + 385,
+                          PALETTE_PIXEL,
+                          PALETTE_PIXEL)
         pygame.draw.rect(SCREEN, (255, 0, 0), highlightangle, 1)
 
         # drawing editable subtile/bigtile
         if subtileMode:
             for i in range(8):
                 for j in range(8):
-                    rectangle = pygame.Rect = ((j * quadrantPixel * 2), (i * quadrantPixel * 2) + 50, quadrantPixel * 2, quadrantPixel * 2)
-                    #try:
+                    rectangle = pygame.Rect = ((j * quadrantPixelSize * 2),
+                                               (i * quadrantPixelSize * 2) + 50,
+                                               quadrantPixelSize * 2,
+                                               quadrantPixelSize * 2)
+                    # try:
                     wower = (subtileGraphics[layerChosen][(subtileSelected) * 8 + i][j])
                     pygame.draw.rect(SCREEN, hexCodes[paletteSelected * 4 + (int(wower))], rectangle)
-                    #except Exception:
+                    # except Exception:
                     #    print("wodawr")
                     #    break
         # and drawing changeable bigtiles:
         else:
             if displayBigtileSubtiles:
-                #try:
+                # try:
                 # drawing subtiles on big bigtile:
                 #### todo: merge part of this with the other layerCount one! maybe make a function for shadowcheck or smth idk
                 if loadedSpriteType in biggerSprites or not eyeMode:
@@ -2031,32 +2008,41 @@ while running:
                         layerCount -= 1  # shadow hider in eye land
                     for i in range(layerCount)[::-1]:
                         subtilesOnBigtile(i)
-                #except Exception:
-                    #print("wawawfa")
+                # except Exception:
+                # print("wawawfa")
 
             if loadedSpriteType == sprites.courseBigtile.value:
                 # drawing collision colours
                 for i in range(5):
                     for j in range(3):
-                        rectangle = pygame.Rect = ((j * COLLISION_PIXEL), (400 + i * COLLISION_PIXEL), COLLISION_PIXEL, COLLISION_PIXEL)
+                        rectangle = pygame.Rect = ((j * COLLISION_PIXEL),
+                                                   (400 + i * COLLISION_PIXEL),
+                                                   COLLISION_PIXEL,
+                                                   COLLISION_PIXEL)
                         pygame.draw.rect(SCREEN, colours[i * 3 + j], rectangle)
                 # and highlight the selected one
-                highlightangle = (COLLISION_PIXEL * (collisionSelected % 3) + 0, COLLISION_PIXEL * (collisionSelected // 3) + 400, COLLISION_PIXEL, COLLISION_PIXEL)
+                highlightangle = (COLLISION_PIXEL * (collisionSelected % 3) + 0,
+                                  COLLISION_PIXEL * (collisionSelected // 3) + 400,
+                                  COLLISION_PIXEL,
+                                  COLLISION_PIXEL)
                 pygame.draw.rect(SCREEN, (255, 0, 0), highlightangle, 1)
 
                 if displayBigtileCollision:
                     # drawing collision on big bigtile
                     for i in range(2):
                         for j in range(2):
-                            s = pygame.Surface((quadrantPixel * 8, quadrantPixel * 8))
+                            s = pygame.Surface((quadrantPixelSize * 8, quadrantPixelSize * 8))
                             if alpher:
                                 s.set_alpha(150)
                             s.fill(colours[COLLISION_COLOUR_MAPPER[bigtileCollisions[bigtileSelected * 4 + j + i * 2]]])
-                            SCREEN.blit(s, (j * quadrantPixel * 8, i * quadrantPixel * 8 + 50))
+                            SCREEN.blit(s, (j * quadrantPixelSize * 8, i * quadrantPixelSize * 8 + 50))
 
         # highlight the selected quadrant
         if not subtileMode:
-            highlightangle = ((bigtileQuadrantSelected % spriteWidth[layerChosen]) * quadrantPixel * 8, (bigtileQuadrantSelected // spriteWidth[layerChosen]) * quadrantPixel * 8 + 50, quadrantPixel * 8, quadrantPixel * 8)
+            highlightangle = ((bigtileQuadrantSelected % spriteWidth[layerChosen]) * quadrantPixelSize * 8,
+                              (bigtileQuadrantSelected // spriteWidth[layerChosen]) * quadrantPixelSize * 8 + 50,
+                              quadrantPixelSize * 8,
+                              quadrantPixelSize * 8)
             pygame.draw.rect(SCREEN, (255, 0, 0), highlightangle, 1)
 
         # drawing the subtile menu and selected subtile thing in top right
@@ -2067,10 +2053,15 @@ while running:
         if Y < 50:
             pygame.draw.line(SCREEN, (255, 0, 0), (750, 50), (1261, 50))
         elif Y < 50 + NUM_OF_SMALLTILES_DISPLAYED_VT * 8 * SMALLTILE_PIXEL:  # another not *10 so ha for the 336 part
-            highlightangle = (SMALLTILE_PIXEL * 8 * (subtileSelected % NUM_OF_SMALLTILES_DISPLAYED_HZ) + 750, Y, SMALLTILE_PIXEL * 8, SMALLTILE_PIXEL * 8)
+            highlightangle = (SMALLTILE_PIXEL * 8 * (subtileSelected % NUM_OF_SMALLTILES_DISPLAYED_HZ) + 750,
+                              Y,
+                              SMALLTILE_PIXEL * 8,
+                              SMALLTILE_PIXEL * 8)
             pygame.draw.rect(SCREEN, (255, 0, 0), highlightangle, 1)
         else:
-            pygame.draw.line(SCREEN, (255, 0, 0), (750, 50 + NUM_OF_SMALLTILES_DISPLAYED_VT * 8 * SMALLTILE_PIXEL), (750 + SMALLTILE_PIXEL * 8 * NUM_OF_SMALLTILES_DISPLAYED_HZ, 50 + NUM_OF_SMALLTILES_DISPLAYED_VT * 8 * SMALLTILE_PIXEL))
+            pygame.draw.line(SCREEN, (255, 0, 0), (750, 50 + NUM_OF_SMALLTILES_DISPLAYED_VT * 8 * SMALLTILE_PIXEL), (
+            750 + SMALLTILE_PIXEL * 8 * NUM_OF_SMALLTILES_DISPLAYED_HZ,
+            50 + NUM_OF_SMALLTILES_DISPLAYED_VT * 8 * SMALLTILE_PIXEL))
 
         # draw sport buttons, sport button memory, & actions
         sportCount = 0
@@ -2095,7 +2086,10 @@ while running:
                 for i, thingy in enumerate(subtileyPalleteyThingies):
                     # if i == 0 and loadedSpriteType != 17:
                     #    continue
-                    rectangle = pygame.Rect = (856, 395 + i * (THINGY_PIXEL + 10), THINGY_PIXEL, THINGY_PIXEL)
+                    rectangle = pygame.Rect = (856,
+                                               395 + i * (THINGY_PIXEL + 10),
+                                               THINGY_PIXEL,
+                                               THINGY_PIXEL)
                     if thingy:
                         pygame.draw.rect(SCREEN, (255, 255, 0), rectangle)
                     else:
@@ -2107,13 +2101,13 @@ while running:
                         if thingyWait == 0:
                             displayBigtileSubtiles = not displayBigtileSubtiles
                             alpher = not alpher
-                            thingyWait = (frameseys+1)//6
+                            thingyWait = (frameseys + 1) // 6
                         else:
                             thingyWait -= 1
                     if TOGGLE_COLLISIONS_BUTTON.draw(SCREEN):
                         if thingyWait == 0:
                             displayBigtileCollision = not displayBigtileCollision
-                            thingyWait = (frameseys+1)//6
+                            thingyWait = (frameseys + 1) // 6
                         else:
                             thingyWait -= 1
 
@@ -2128,7 +2122,7 @@ while running:
                     else:
                         EYE_BUTTON = button.Button(856, 395, EYE_IMAGES[1], 1)
                     eyeMode = not eyeMode
-                thingyWait = (frameseys+1)//6
+                thingyWait = (frameseys + 1) // 6
             thingyWait -= 1
             if thingyWait < 0:
                 thingyWait = 0
@@ -2136,7 +2130,10 @@ while running:
             for i in range(layers):
                 # if i == 0 and loadedSpriteType != 17:
                 #    continue
-                rectangle = pygame.Rect = (856, 445 + i * (THINGY_PIXEL + 10), THINGY_PIXEL, THINGY_PIXEL)
+                rectangle = pygame.Rect = (856,
+                                           445 + i * (THINGY_PIXEL + 10),
+                                           THINGY_PIXEL,
+                                           THINGY_PIXEL)
                 if i == layerChosen:
                     pygame.draw.rect(SCREEN, (200, 255, 50), rectangle)
                 else:

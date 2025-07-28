@@ -1,0 +1,1 @@
+mei files in here should only come from scores with 1 instrument (1 staff too to be safe) and 1 voice at any time. anything else and idk what happens, but i don't imagine it'll be good

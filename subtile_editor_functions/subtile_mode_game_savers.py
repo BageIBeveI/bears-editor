@@ -1,7 +1,6 @@
 ### HELPERS
-def rgbToGbcBytes(hexCode):
-    RGB = hexCode  # [R,G,B] 0-255
-    # gbc uses 555 bytes, so each colour uses 5 most significant bytes in this green
+def rgbToGbcBytes(RGB): # [R,G,B] 0-255
+    # gbc uses 5-5-5 bytes, so each colour uses 5 most significant bytes (may wanna round instead)
     R = bin(RGB[0] >> 3)[2:].zfill(5)
     G = bin(RGB[1] >> 3)[2:].zfill(5)
     B = bin(RGB[2] >> 3)[2:].zfill(5)
