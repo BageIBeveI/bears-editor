@@ -262,9 +262,9 @@ loadedMenuPagePalette = 0
 layers = 1
 layerChosen = 0
 eyeMode = False
-HIGHLIGHTY_SPRITE_RECTANGLE_POSITIONS = [(981, 631, 18, 18), (1082, 608, 18, 18), (1103, 608, 18, 18),
-                                         (1082, 629, 18, 18), (1103, 629, 18, 18), (1082, 650, 18, 18),
-                                         (1103, 650, 18, 18), (972, 596, 18, 18), (1014, 596, 18, 18),
+HIGHLIGHTY_SPRITE_RECTANGLE_POSITIONS = [(981, 631, 18, 18), (1103, 608, 18, 18), (1082, 608, 18, 18),
+                                         (1103, 629, 18, 18), (1082, 629, 18, 18), (1103, 650, 18, 18),
+                                         (1082, 650, 18, 18), (972, 596, 18, 18), (1014, 596, 18, 18),
                                          (993, 596, 18, 18), (1156, 596, 18, 18), (1177, 596, 18, 18),
                                          (1177, 617, 18, 18), (1156, 617, 18, 18), (1167, 638, 18, 18),
                                          (1002, 631, 18, 18), (1023, 631, 18, 18), (950, 651, 18, 18),
@@ -301,6 +301,13 @@ subtileMovWait = 0
 bigQuadMovWait = 0
 subtileMovement = 0
 bigQuadMovement = 0
+
+class movement(Enum):
+    none = 0
+    up = 1
+    left = 2
+    down = 3
+    right = 4
 
 # non tile images
 TOBOGGAN_IMAGE = pygame.image.load(f'tile_editor_pictures/tobogganButton.png').convert_alpha()
@@ -699,6 +706,8 @@ def loadBigGraphics():
         global frameCount
         global quadrantPixelSize
         global layers
+        global layerChosen
+        global eyeMode
         global loadedMenuPagePalette
         global spriteSubtiles
         global spritePalettes
@@ -713,6 +722,8 @@ def loadBigGraphics():
         frameCount = 1
         quadrantPixelSize = 2
         layers = 1
+        layerChosen = 0
+        eyeMode = False
         loadedMenuPagePalette = returnVals[1]
         spriteSubtiles = returnVals[2]
         spritePalettes = returnVals[3]
@@ -1409,13 +1420,13 @@ while running:
 
                 # traverse subtiles with keys
                 if event.key == pygame.K_t:
-                    subtileMovement = 1
+                    subtileMovement = movement.up.value
                 if event.key == pygame.K_f:
-                    subtileMovement = 2
+                    subtileMovement = movement.left.value
                 if event.key == pygame.K_g:
-                    subtileMovement = 3
+                    subtileMovement = movement.down.value
                 if event.key == pygame.K_h:
-                    subtileMovement = 4
+                    subtileMovement = movement.right.value
 
                 # changing bigtile:
                 if not subtileMode:
@@ -1426,13 +1437,13 @@ while running:
 
                     # traverse bigtile with keys
                     if event.key == pygame.K_i:
-                        bigQuadMovement = 1
+                        bigQuadMovement = movement.up.value
                     if event.key == pygame.K_j:
-                        bigQuadMovement = 2
+                        bigQuadMovement = movement.left.value
                     if event.key == pygame.K_k:
-                        bigQuadMovement = 3
+                        bigQuadMovement = movement.down.value
                     if event.key == pygame.K_l:
-                        bigQuadMovement = 4
+                        bigQuadMovement = movement.right.value
 
                 if event.key == pygame.K_z:
                     if undoStack != []:
@@ -1508,11 +1519,11 @@ while running:
                     scrollSpeed = 1
 
                 if event.key in (pygame.K_t, pygame.K_f, pygame.K_g, pygame.K_h):
-                    subtileMovement = 0
+                    subtileMovement = movement.none.value
                     subtileMovWait = 0
 
                 if event.key in (pygame.K_i, pygame.K_j, pygame.K_k, pygame.K_l):
-                    bigQuadMovement = 0
+                    bigQuadMovement = movement.none.value
                     bigQuadMovWait = 0
 
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:  # lmb up, check if undo stack should be updated
@@ -1564,19 +1575,19 @@ while running:
         if subtileMovement != 0:
             if subtileMovWait == 0:
                 match subtileMovement:
-                    case 1:
+                    case movement.up.value:
                         subtileSelected -= 16
                         if subtileSelected < 0:
                             subtileSelected = 0
-                    case 2:
+                    case movement.left.value:
                         subtileSelected -= 1
                         if subtileSelected < 0:
                             subtileSelected = 0
-                    case 3:
+                    case movement.down.value:
                         subtileSelected += 16
                         if subtileSelected >= len(subtileGraphics[layerChosen]) // 8:
                             subtileSelected = (len(subtileGraphics[layerChosen]) // 8) - 1
-                    case 4:
+                    case movement.right.value:
                         subtileSelected += 1
                         if subtileSelected >= len(subtileGraphics[layerChosen]) // 8:
                             subtileSelected = (len(subtileGraphics[layerChosen]) // 8) - 1
@@ -1592,19 +1603,19 @@ while running:
         if bigQuadMovement != 0:
             if bigQuadMovWait == 0:
                 match bigQuadMovement:
-                    case 1:
+                    case movement.up.value:
                         bigtileQuadrantSelected -= spriteWidth[layerChosen]
                         if bigtileQuadrantSelected < 0:
                             bigtileQuadrantSelected = 0
-                    case 2:
+                    case movement.left.value:
                         bigtileQuadrantSelected -= 1
                         if bigtileQuadrantSelected < 0:
                             bigtileQuadrantSelected = 0
-                    case 3:
+                    case movement.down.value:
                         bigtileQuadrantSelected += spriteWidth[layerChosen]
                         if bigtileQuadrantSelected >= spriteWidth[layerChosen] * spriteHeight[layerChosen]:
                             bigtileQuadrantSelected = (spriteWidth[layerChosen] * spriteHeight[layerChosen]) - 1
-                    case 4:
+                    case movement.right.value:
                         bigtileQuadrantSelected += 1
                         if bigtileQuadrantSelected >= spriteWidth[layerChosen] * spriteHeight[layerChosen]:
                             bigtileQuadrantSelected = (spriteWidth[layerChosen] * spriteHeight[layerChosen]) - 1
@@ -1748,18 +1759,18 @@ while running:
                 spriteType = sprites.slowing.value
             elif 1023 < mouseX < 1042 and 631 < mouseY < 650:  # stopped
                 spriteType = sprites.stopped.value
-            elif 1082 < mouseX < 1100 and 608 < mouseY < 627:  # A
-                spriteType = sprites.aTrick.value
-            elif 1103 < mouseX < 1121 and 608 < mouseY < 627:  # B
+            elif 1082 < mouseX < 1100 and 608 < mouseY < 627:  # B
                 spriteType = sprites.bTrick.value
-            elif 1082 < mouseX < 1100 and 629 < mouseY < 648:  # AUL
-                spriteType = sprites.aUpLeftTrick.value
-            elif 1103 < mouseX < 1121 and 629 < mouseY < 648:  # BUL
+            elif 1103 < mouseX < 1121 and 608 < mouseY < 627:  # A
+                spriteType = sprites.aTrick.value
+            elif 1082 < mouseX < 1100 and 629 < mouseY < 648:  # BUL
                 spriteType = sprites.bUpLeftTrick.value
-            elif 1082 < mouseX < 1100 and 650 < mouseY < 669:  # AUR
-                spriteType = sprites.aUpRightTrick.value
-            elif 1103 < mouseX < 1121 and 650 < mouseY < 669:  # BUR
+            elif 1103 < mouseX < 1121 and 629 < mouseY < 648:  # AUL
+                spriteType = sprites.aUpLeftTrick.value
+            elif 1082 < mouseX < 1100 and 650 < mouseY < 669:  # BUR
                 spriteType = sprites.bUpRightTrick.value
+            elif 1103 < mouseX < 1121 and 650 < mouseY < 669:  # AUR
+                spriteType = sprites.aUpRightTrick.value
             elif 1156 < mouseX < 1174 and 596 < mouseY < 615:  # mud
                 spriteType = sprites.mud.value
             elif 1177 < mouseX < 1195 and 596 < mouseY < 615:  # pud
@@ -2082,7 +2093,8 @@ while running:
 
         # drawing subtile palettey extra thingies
         if not subtileMode:
-            if loadedSpriteType in biggerSprites:  # since palettes are connected to tiles i dont think these would be useful for bear sprites
+            if loadedSpriteType not in smallerSprites:  # since palettes are connected to tiles i dont think these would be useful for bear sprites
+                                                        # (so not for all smalls? idk if past me had it for only bear or all smalls, but leaving it as is to be safe)
                 for i, thingy in enumerate(subtileyPalleteyThingies):
                     # if i == 0 and loadedSpriteType != 17:
                     #    continue
