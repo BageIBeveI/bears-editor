@@ -523,7 +523,6 @@ def mei_loader(notes, note_lengths):
     values = temp_musescore_converter_thing.main()
     if values == ():
         return
-    print(values)
     notes[channel] = values[0]
     note_lengths[channel] = values[1]
 
