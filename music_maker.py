@@ -1,6 +1,7 @@
 # todo thingy: allow first note to be played later than instantly
 
 import os
+import temp_musescore_converter_thing
 
 def main():
     delimiter = input("What delimiter should be used for separating note inputs? (e.g. a comma or a space, for C1,C2,"
@@ -151,16 +152,17 @@ def main():
                 game_writer(notes, note_lengths, PITCH_TO_BYTE, frames_per_quarter_note)
             elif user_choice == "6":
                 frames_per_quarter_note = file_loader(notes, note_lengths)
+            elif user_choice == "7":
+                mei_loader(notes, note_lengths)
             elif user_choice == "Q":
                 if input("Are you sure? Y to quit: ").upper() == "Y":
                     exit()
     except Exception:
         i = 0
+        print("Crashed! Saving data to a temp file.")
         while os.path.exists(f"music_csv/temp{i}.csv"):
-            i += 1
+           i += 1
         file_saver(notes, note_lengths, f"temp{i}")
-        print("Crashed! Saved data to a temp file.")
-
 
 def print_menu():
     print("\n1: Add new data")
@@ -169,6 +171,7 @@ def print_menu():
     print("4: Save data as csv")
     print("5: Save data to game")
     print("6: Load track data")
+    print("7: Load .mei")
     print("Q: Quit")
     return
 
@@ -515,6 +518,14 @@ def file_loader(notes, note_lengths):
     return temporarium
 
 
+def mei_loader(notes, note_lengths):
+    channel = int(input("Input channel number here (0, 1, 2, or 3): "))
+    values = temp_musescore_converter_thing.main()
+    if values == ():
+        return
+    print(values)
+    notes[channel] = values[0]
+    note_lengths[channel] = values[1]
 
 main()
 
