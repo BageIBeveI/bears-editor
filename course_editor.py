@@ -1332,7 +1332,7 @@ while running:
             mouseOverTile = allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16]
             if pygame.mouse.get_pressed()[0] == 1:
                 if drawMode == drawModes.draw.value and mouseOverTile != chosenTile:
-                    mouseOverTile = chosenTile
+                    allLevelTileCSVs[sportType][sportDifficulty][mouseX + mouseY * 16] = chosenTile
                 elif drawMode == drawModes.bucket.value and mouseOverTile != chosenTile:
                     course_editor_functions.drawing_funcs.paint(mouseX, mouseY, chosenTile, mouseOverTile,
                                                                 allLevelTileCSVs[sportType][sportDifficulty],
