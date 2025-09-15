@@ -833,9 +833,6 @@ def tinySubtileDraw(subGraphics, hexCodes, palSelected, scroll):
 def subtilesOnBigtile(layer):
     pixelsInASubtile = 8
     drawnBigtileCoords = (0, 50)  # 50 as a y coord to keep it outta the corner
-    # 8x8 pixels in a subtile
-    hz_range = range(pixelsInASubtile)
-    vt_range = range(pixelsInASubtile)
 
     class coord(Enum):
         x = 0
@@ -845,6 +842,10 @@ def subtilesOnBigtile(layer):
         ySubtileProgress = subtileRow * quadrantPixelSize * pixelsInASubtile
         for subtileColumn in range(spriteWidth[layer]):
             xSubtileProgress = subtileColumn * quadrantPixelSize * pixelsInASubtile
+
+            # 8x8 pixels in a subtile
+            hz_range = range(pixelsInASubtile)
+            vt_range = range(pixelsInASubtile)
 
             # getting an index, bank, and palette per subtile
             if loadedSpriteType == sprites.courseBigtile.value:
@@ -866,9 +867,14 @@ def subtilesOnBigtile(layer):
             if subtilePalette & 0x40 == 0x40:  # vt flip
                 vt_range = vt_range[::-1]
 
-            for pixelYVal in vt_range:
+            ## ohhh these enumerates are here for when the range flips around
+            ## still need to do the coordinates the right way, but need to flip the bytes in subtilegraphics
+            ## flipping both just leads to it being drawn the normal way, just with a different order of pixels
+            ## well it looks like past me gets the last laugh after all ........... :( sorry for doubting you, past me
+            ## (but your variable names still leave much to be desired)
+            for pixelYVal, orderY in enumerate(vt_range):
                 yProgress = pixelYVal * quadrantPixelSize
-                for pixelXVal in hz_range:
+                for pixelXVal, orderX in enumerate(hz_range):
                     xProgress = pixelXVal * quadrantPixelSize
                     rectangle = pygame.Rect = (
                         (xProgress + xSubtileProgress + drawnBigtileCoords[coord.x.value]),
@@ -877,8 +883,8 @@ def subtilesOnBigtile(layer):
                         quadrantPixelSize)
 
                     theSubtileInQuestion = spriteSubtiles[layer][bigtileSubtileIndex0x400]
-                    byteIndex = theSubtileInQuestion * pixelsInASubtile + pixelYVal + bankSwitch
-                    zeroOneTwoThreeColour = int(subtileGraphics[layer][byteIndex][pixelXVal])  # gettin that quaternary byte
+                    byteIndex = theSubtileInQuestion * pixelsInASubtile + orderY + bankSwitch
+                    zeroOneTwoThreeColour = int(subtileGraphics[layer][byteIndex][orderX])  # gettin that quaternary byte
 
                     # transparent colour zero
                     if eyeMode and zeroOneTwoThreeColour == 0:
@@ -1708,10 +1714,11 @@ while running:
                         break
 
             # clicking a subtileythingy
-            elif 856 < mouseX < 856 + THINGY_PIXEL and 395 < mouseY < 395 + THINGY_PIXEL * 3 + 20 and not subtileMode and loadedSpriteType in biggerSprites:
+            elif 856 < mouseX < 856 + THINGY_PIXEL and 395 < mouseY < 395 + THINGY_PIXEL * 3 + 20 and not subtileMode and loadedSpriteType not in smallerSprites:
                 if thingyWait == 0:
                     if loadedSpriteType == sprites.courseBigtile.value:
                         ox400IndexThingForHere = bigtileSelected * 2 + bigtileQuadrantSelected % 2 + (bigtileQuadrantSelected // 2) * 0x20 + (bigtileSelected // 0x10) * 0x20
+                        #################spritePalettes[0][ox400IndexThingForHere] = (spritePalettes[0][ox400IndexThingForHere] & 0b11111000) | paletteSelected
                     else: # > 22
                         ox400IndexThingForHere = bigtileQuadrantSelected
                     ###print("E")
